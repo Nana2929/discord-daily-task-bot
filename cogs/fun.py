@@ -172,5 +172,52 @@ class Fun(commands.Cog, name="fun"):
         await context.send("Please make your choice", view=view)
 
 
+
+    @commands.hybrid_command(
+        name="doggo",
+        description="See a cute dog when you are tired."
+    )
+    @checks.not_blacklisted()
+    async def see_doggo(self, context: Context, *, breed: str = None) -> None:
+        """
+        See a doggo.
+
+        :param context: The hybrid command context.
+        """
+        if not breed:
+            url = "https://dog.ceo/api/breeds/image/random"
+            breed = ""
+        else:
+            breed = breed.lower()
+            breed_arr = [breed]
+            url = f"https://dog.ceo/api/breed/{' '.join(breed_arr)}/images/random"
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as request:
+                if request.status == 200:
+                    data = await request.json()
+                    if 'message' in data:
+                        embed = discord.Embed(
+                            title= f"Otsukaresama. Here is the requested {breed} doggo for you!",
+                            color=0x9C84EF
+                        )
+                        embed.set_image(url=data["message"])
+                    else:
+                        embed = discord.Embed(
+                            title="No such breed!",
+                            description="Your doggo can't come to the phone rn, please try another",
+                            color=0xE02B2B
+                        )
+                else:
+                    embed = discord.Embed(
+                        title="Error!",
+                        description="Your doggo can't come to the phone rn due to the API breakdown, please try again later",
+                        color=0xE02B2B
+                    )
+                await context.send(embed=embed)
+
+
+
+
 async def setup(bot):
     await bot.add_cog(Fun(bot))

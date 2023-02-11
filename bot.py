@@ -14,7 +14,6 @@ import platform
 import random
 import sys
 
-import aiosqlite
 import discord
 from discord.ext import commands, tasks
 from discord.ext.commands import Bot, Context
@@ -27,7 +26,7 @@ else:
     with open(f"{os.path.realpath(os.path.dirname(__file__))}/config.json") as file:
         config = json.load(file)
 
-"""	
+"""
 Setup bot intents (events restrictions)
 For more information about intents, please go to the following websites:
 https://discordpy.readthedocs.io/en/latest/intents.html
@@ -60,7 +59,7 @@ intents.message_content = True
 intents.presences = True
 """
 
-intents = discord.Intents.default()
+intents = discord.Intents.all()
 
 """
 Uncomment this if you want to use prefix (normal) commands.
@@ -124,13 +123,13 @@ logger.addHandler(file_handler)
 bot.logger = logger
 
 
+import aiosqlite
 async def init_db():
+    # if not set, connect to a transient db
     async with aiosqlite.connect(f"{os.path.realpath(os.path.dirname(__file__))}/database/database.db") as db:
         with open(f"{os.path.realpath(os.path.dirname(__file__))}/database/schema.sql") as file:
             await db.executescript(file.read())
         await db.commit()
-
-
 """
 Create a bot variable to access the config file in cogs so that you don't need to import it every time.
 

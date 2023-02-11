@@ -27,3 +27,9 @@ class UserNotOwner(commands.CheckFailure):
     def __init__(self, message="User is not an owner of the bot!"):
         self.message = message
         super().__init__(self.message)
+
+class DupCheckIn(commands.CheckFailure):
+
+    def __init__(self, message="Duplicated check-in of the same challenge!"):
+        self.message = message
+        super().__init__(self.message)
