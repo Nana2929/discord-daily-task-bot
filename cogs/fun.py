@@ -184,13 +184,17 @@ class Fun(commands.Cog, name="fun"):
 
         :param context: The hybrid command context.
         """
+
+        print(breed)
         if not breed:
             url = "https://dog.ceo/api/breeds/image/random"
             breed = ""
         else:
             breed = breed.lower()
-            breed_arr = [breed]
-            url = f"https://dog.ceo/api/breed/{' '.join(breed_arr)}/images/random"
+            breed_arr = breed.split()
+            breed_arr = breed_arr[::-1]
+            url = f"https://dog.ceo/api/breed/{'/'.join(breed_arr)}/images/random" # https://dog.ceo/api/breed/cattledog/australian/images/random
+            print(url)
 
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as request:
