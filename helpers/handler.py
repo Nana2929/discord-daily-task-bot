@@ -8,17 +8,14 @@ from exceptions import *
 
 DATABASE_PATH = f"{os.path.realpath(os.path.dirname(__file__))}/../database/database.db"
 
-@dataclass
-class DB:
-    lcc = "leetcode_daily_challenge"
-    sub = "ldc_subscription"
 
-async def check_in(user_id: int) -> List:
+
+async def check_in(user_id: int, challenge: str) -> List:
     """
     This function will return
     """
     now = datetime.now()
-    fetch_sql = "SELECT * FROM {DB.lcc} WHERE user_id = ?"
+    fetch_sql = "SELECT * FROM {challenge} WHERE user_id = ?"
     async with aiosqlite.connect(DATABASE_PATH) as db:
         async with db.execute(fetch_sql, (user_id, )) as cursor:
             rows = await cursor.fetchall()
@@ -39,7 +36,7 @@ async def check_in(user_id: int) -> List:
         else:
             break
 
-    push_sql = f''' INSERT INTO {DB.lcc} (user_id, report_time) VALUES (?, ?) '''
+    push_sql = f''' INSERT INTO {challenge} (user_id, report_time) VALUES (?, ?) '''
     async with db.execute(push_sql, (user_id, now)):
         await db.commit()
     return consecutive, len(data)

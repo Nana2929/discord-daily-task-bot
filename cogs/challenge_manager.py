@@ -33,44 +33,22 @@ class Challenge_Manager(commands.Cog,
         return inverted_challenge_map
 
     # Here you can just add your own commands, you'll always need to provide "self" as first parameter.
-    @commands (
+    @commands.hybrid_command(
         name = "daily",
         description = "Check in to the specified challenge",
     )
     @checks.not_blacklisted()
-    async def check_in(self, context: Context, *,
+    async def check_in(self, context: Context,
                         challenge: str="leetcode-daily") -> None:
 
         challenge = self.inverted_challenge_map.get(challenge, challenge)
+        # bug ouch 
         consecutive, total = handler.check_in(context.author.id, challenge)
         embed = discord.Embed(
             description=f"Successfully checked in to {challenge}. You have checked in {consecutive} times in a row and {total} times in total.",
             color=0x9C84EF)
         await context.send(embed=embed)
         return True
-
-
-
-
-    @commands.hybrid_command(
-        name="testcommand",
-        description="This is a testing command that does nothing.",
-    )
-    # This will only allow non-blacklisted members to execute the command
-    @checks.not_blacklisted()
-    # This will only allow owners of the bot to execute the command -> config.json
-    @checks.is_owner()
-    async def testcommand(self, context: Context):
-        """
-        This is a testing command that does nothing.
-
-        :param context: The application command context.
-        """
-        # Do your stuff here
-
-        # Don't forget to remove "pass", I added this just because there's no content in the method.
-        pass
-
 
 # And then we finally add the cog to the bot so that it can load, unload, reload and use it's content.
 async def setup(bot):
