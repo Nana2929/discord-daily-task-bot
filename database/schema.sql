@@ -1,10 +1,14 @@
+-- CREATE DATABASE leetbot;
+
 CREATE TABLE IF NOT EXISTS blacklist (
+  id int PRIMARY KEY NOT NULL,
   user_id varchar(20) NOT NULL,
   created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+-- GRANT ALL PRIVILEGES ON DATABASE leetcode TO leetcode;
 
 CREATE TABLE IF NOT EXISTS warns (
-  id int NOT NULL,
+  id int PRIMARY KEY NOT NULL,
   user_id varchar(20) NOT NULL,
   server_id varchar(20) NOT NULL,
   moderator_id varchar(20) NOT NULL,
@@ -23,3 +27,4 @@ CREATE TABLE IF NOT EXISTS ldc_subscription (
     remind_time int NOT NULL DEFAULT 20,
     condemn_time int NOT NULL DEFAULT 23
 );
+

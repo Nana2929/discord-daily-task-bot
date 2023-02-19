@@ -4,11 +4,14 @@ services:
   database:
     container_name: database
     image: postgis/postgis:13-master
+    ports:
+      - 5432:5432
     volumes:
       - ./data/database:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql # setting up a database
     networks:
       - directus
-    env_file: /home/nanaeilish/projects/discord-bot/Python-Discord-Bot-Template/myenv.env
+    env_file: ./myenv.env
 
   cache:
     container_name: cache
@@ -20,7 +23,7 @@ services:
     container_name: directus
     image: directus/directus:latest
     ports:
-      - 8055:8055
+      - 8056:8056
     volumes:
       # By default, uploads are stored in /directus/uploads
       # Always make sure your volumes matches the storage root when using
@@ -35,7 +38,7 @@ services:
     depends_on:
       - cache
       - database
-    env_file: /home/nanaeilish/projects/discord-bot/Python-Discord-Bot-Template/myenv.env
+    env_file: ./myenv.env
       # Make sure to set this in production
       # (see https://docs.directus.io/self-hosted/config-options#general)
 
