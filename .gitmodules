@@ -1,0 +1,3 @@
+[submodule "discord-ext-forms"]
+	path = discord-ext-forms
+	url = https://github.com/eric88525/discord-ext-forms.git
