@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 field_mapping = {
-    'words': ['content', 'user_id', 'server_id', 'created_at'],
+    'words': ['content', 'user_id', 'server_id', 'created_at', 'style'],
 }
 
 api_url ="http://140.116.245.105:9453/items"
@@ -17,10 +17,25 @@ api_url ="http://140.116.245.105:9453/items"
 class Request:
     def __init__(self, collection):
         self._collection = collection
+        self._params = {"fields[]": ""}
         self._fields = field_mapping[collection].copy()
         self._url = f"{api_url}/{collection}"
-    def query(self, **kwargs):
-        return requests.get(self.url, params=kwargs)
+# query
+class Querier(Request):
+    def __init__(self, resource):
+        super().__init__(resource)
+
+    def query(self):
+        self._params["fields[]"] += ",".join(map(lambda f: f"{f}", self._fields))
+
+        logger.info(f"GET {self._collection} from API: url={self._url} params={self._params}")
+
+        response = requests.get(self._url, params=self._params).json()
+        if "data" in response:
+            return response['data']
+        else:
+            return response.get("message", "An unknown error occurred. Please try again later.")
+
 
     def drop_field(self, field: str):
         if field in self._fields:
@@ -35,7 +50,7 @@ class Request:
     def fields(self, key: str, val: str):
         self._params[key] = val
         return self
-
+# modifiers
 class RequestAdd(Request):
     def __init__(self, collection):
         super().__init__(collection)
