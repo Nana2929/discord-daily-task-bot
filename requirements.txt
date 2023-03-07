@@ -1,3 +1,21 @@
-aiohttp
-aiosqlite
-discord.py
+aiohttp==3.8.4
+aiosignal==1.3.1
+aiosqlite==0.18.0
+async-timeout==4.0.2
+attrs==22.2.0
+certifi==2022.12.7
+charset-normalizer==3.0.1
+-e git+https://github.com/eric88525/discord-ext-forms.git@f26646dab7d5c9e3ef6c7c3d104c5e0cfe94fe8f#egg=discord_ext_forms&subdirectory=../../discord-ext-forms
+discord.py==2.1.1
+emoji==1.7.0
+flake8==6.0.0
+frozenlist==1.3.3
+idna==3.4
+mccabe==0.7.0
+multidict==6.0.4
+pycodestyle==2.10.0
+pyflakes==3.0.1
+requests==2.28.2
+urllib3==1.26.14
+yapf==0.32.0
+yarl==1.8.2
