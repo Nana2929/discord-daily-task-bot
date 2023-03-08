@@ -1,7 +1,8 @@
 # %%
-import requests
-
-API = "http://140.116.245.105:9453/items/"
+try:
+    from base import Querier, RequestAdd, RequestDelete, RequestUpdate
+except:
+    from .base import Querier, RequestAdd, RequestDelete, RequestUpdate
 
 
 def add_task(user_id, server_id, name, description):
@@ -12,6 +13,6 @@ def add_task(user_id, server_id, name, description):
         "server_id": str(server_id),
     }
 
-    response = requests.post(API + "task", json=data)
+    task_adder = RequestAdd("task")
 
-    return response.ok
+    return task_adder(**data).ok
