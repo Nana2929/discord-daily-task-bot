@@ -44,7 +44,7 @@ class Querier(Request):
         return self
 
     def filter_by(self, field: str, operator: str, values: str):
-        key = f"filter{field}[_{operator}]"
+        key = f"filter[{field}][_{operator}]"
         self._params[key] = values if not isinstance(values, list) else ",".join(values)
         return self
 
