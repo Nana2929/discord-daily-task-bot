@@ -93,6 +93,121 @@ class Daily(commands.Cog, name="daily", description=""):
 
         await ctx.send(view=view)
 
+    @daily.command(
+        name="listall",
+        description="列出所有 daily task",
+    )
+    @checks.not_blacklisted()
+    async def daily_listall(self, ctx: Context):
+
+        tasks_in_server = daily_adapter.get_task(
+            {"server_id": str(ctx.guild.id)}
+        )
+
+        embed = discord.Embed(
+            title="所有 daily task",
+            description=f"共有 {len(tasks_in_server)} 個 task",
+            color=discord.Color.green()
+        )
+
+        for task in tasks_in_server:
+
+            user = await self.bot.fetch_user(int(task["created_by"]))
+            embed.add_field(
+                name=f"{task['name']} ",
+                value=f"{user.mention}\n{task['description']}\n-----",
+                inline=False
+            )
+        await ctx.send(embed=embed)
+
+    @daily.command(
+        name="listmine",
+        description="列出自己的 daily task",
+    )
+    @checks.not_blacklisted()
+    async def daily_listmine(self, ctx: Context):
+
+        tasks = daily_adapter.get_task(
+            {
+                "created_by": str(ctx.author.id),
+                "server_id": str(ctx.guild.id)
+            }
+        )
+
+        embed = discord.Embed(
+            title="以下是您建立的 daily task",
+            description=f"共有 {len(tasks)} 個 task",
+            color=discord.Color.green()
+        )
+
+        for task in tasks:
+
+            user = await self.bot.fetch_user(int(task["created_by"]))
+
+            embed.add_field(
+                name=f"{task['name']} ",
+                value=f"{user.mention}\n{task['description']}\n-----",
+                inline=False
+            )
+        await ctx.send(embed=embed)
+
+    @daily.command(
+        name="done",
+        description="簽到任務",
+    )
+    @checks.not_blacklisted()
+    async def daily_done(self, ctx: Context):
+
+        tasks = daily_adapter.get_task(
+            {
+                "server_id": str(ctx.guild.id)
+            }
+        )
+
+        view = ui.View()
+        select_options = ui.Select(
+            placeholder="請選擇要簽到的每日任務",
+            min_values=1,
+            max_values=len(tasks))
+
+        for task in tasks:
+            select_options.add_option(
+                label=f"📌 {task['name']} {task['description'][:10]}",
+                value=task["id"]
+            )
+
+        async def callback(interaction: discord.Interaction):
+
+            selected_values = select_options.values  # list of task id
+
+            user_historys = daily_adapter.get_history(
+                {
+                    "user_id": str(ctx.author.id),
+                    "server_id": str(ctx.guild.id)
+                }
+            )
+
+            id_to_history =  
+
+
+
+
+
+            # for selected_value in selected_values:
+                
+            #     if str(selected_value) in user_historys:
+            # # 
+
+            print(selected_values)
+
+        select_options.callback = callback
+        view.add_item(select_options)
+
+        await ctx.send(view=view)
+
+
 # And then we finally add the cog to the bot so that it can load, unload, reload and use it's content.
+
+
 async def setup(bot):
     await bot.add_cog(Daily(bot))

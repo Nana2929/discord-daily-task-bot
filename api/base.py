@@ -8,7 +8,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 field_mapping = {
-    'words': ['id', 'content', 'user_id', 'server_id', 'created_at', 'style'],
+    'words': ['content', 'user_id', 'server_id', 'created_at', 'style'],
+    'task': ['id', 'name', 'description', 'created_at', 'server_id', 'created_by'],
+    'history': ['id', 'user_id', 'task_id', 'accumulate', 'consecutive', 'server_id', 'last_check'],
 }
 
 api_url = "http://140.116.245.105:9453/items"
