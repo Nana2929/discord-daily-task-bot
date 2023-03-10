@@ -7,21 +7,25 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
 field_mapping = {
-    'words': ['content', 'user_id', 'server_id', 'created_at', 'style'],
+    'words': ['id', 'content', 'user_id', 'server_id', 'created_at', 'style'],
 }
 
-api_url ="http://140.116.245.105:9453/items"
+api_url = "http://140.116.245.105:9453/items"
+
 
 class Request:
+
     def __init__(self, collection):
         self._collection = collection
         self._params = {"fields[]": ""}
         self._fields = field_mapping[collection].copy()
         self._url = f"{api_url}/{collection}"
+
+
 # query
 class Querier(Request):
+
     def __init__(self, resource):
         super().__init__(resource)
 
@@ -36,38 +40,47 @@ class Querier(Request):
         else:
             return response.get("message", "An unknown error occurred. Please try again later.")
 
-
     def drop_field(self, field: str):
         if field in self._fields:
             self._fields.remove(field)
         return self
 
     def filter_by(self, field: str, operator: str, values: str):
-        key = f"filter{field}[_{operator}]"
+        key = f"filter[{field}][_{operator}]="
+        # http://140.116.245.105:9453/items/words?filter[user_id][_eq]=918353320068915210
         self._params[key] = values if not isinstance(values, list) else ",".join(values)
         return self
 
     def fields(self, key: str, val: str):
         self._params[key] = val
         return self
+
+
 # modifiers
 class RequestAdd(Request):
+
     def __init__(self, collection):
         super().__init__(collection)
+
     def __call__(self, **kwargs):
         return requests.post(self._url, json=kwargs)
 
+
 class RequestDelete(Request):
+
     def __init__(self, collection):
         super().__init__(collection)
+
     def __call__(self, item_id: Any):
         self._url += f"/{item_id}"
         return requests.delete(self._url)
 
 
 class RequestUpdate(Request):
+
     def __init__(self, collection):
         super().__init__(collection)
+
     def __call__(self, item_id: Any, **kwargs):
         self._url += f"/{item_id}"
         updated_fields_dict = {k: v for k, v in kwargs.items() if k in self._fields}
