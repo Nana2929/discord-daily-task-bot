@@ -3,6 +3,7 @@ from datetime import datetime
 from discord.ext import commands
 from discord.ext.commands import Context
 from helpers import checks
+from helpers.utils import ButtonCheck
 import discord
 from discord import ui
 from discord import app_commands
@@ -16,22 +17,6 @@ import logging
 logging.basicConfig(level=logging.INFO)
 GUILD_ID = 1073536462924025937
 
-
-class ButtonCheck(discord.ui.View):
-
-    def __init__(self):
-        super().__init__()
-        self.value = None
-
-    @discord.ui.button(label="✅", style=discord.ButtonStyle.secondary)
-    async def confirm(self, button: discord.ui.Button, interaction: discord.Interaction):
-        self.value = "yes"
-        self.stop()
-
-    @discord.ui.button(label="❌", style=discord.ButtonStyle.secondary)
-    async def cancel(self, button: discord.ui.Button, interaction: discord.Interaction):
-        self.value = "no"
-        self.stop()
 
 
 class WordAddModal(ui.Modal, title="Modal to add words"):
@@ -142,8 +127,7 @@ class Words(commands.Cog, name="words", description="❤️ 新增/刪除鼓勵�
                                 inline=False)
 
         await context.send(embed=embed)
-
-    @words.command(name="listmine", description="列出所有鼓勵或譴責的話語。")
+    @words.command(name="listmine", description="列出你創建的鼓勵或譴責的話語。")
     @checks.not_blacklisted()
     @app_commands.guilds(discord.Object(id=GUILD_ID))
     async def listmine(self, context: Context):
@@ -159,7 +143,7 @@ class Words(commands.Cog, name="words", description="❤️ 新增/刪除鼓勵�
                                 inline=False)
         await context.send(embed=embed)
 
-    @words.command(name="del", description="刪除（你自己創建的）一句鼓勵或譴責的話語。")
+    @words.command(name="del", description="刪除你創建的一句鼓勵或譴責的話語。")
     @checks.not_blacklisted()
     async def delete(self, context: Context):
         user_words = words_adapter.get_words_by_user(context.author.id)

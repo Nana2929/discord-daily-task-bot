@@ -3,12 +3,17 @@ from typing import List
 from discord.ext import commands
 from discord.ext.commands import Context
 from helpers import checks
+from helpers.utils import ButtonCheck
 import discord
 from discord import ui
 from discord import app_commands
 from discord.ext.forms import Form, Validator, ReactionForm, ReactionMenu
 import math
 import api.daily as daily_adapter
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+GUILD_ID = 1073536462924025937
 
 # %%
 # from utils.logger import L
@@ -65,24 +70,42 @@ class Daily(commands.Cog, name="daily", description=""):
 
     @commands.hybrid_group(
         name="daily",
-        description="",
+        description="每日任務",
     )
     @checks.not_blacklisted()
-    async def daily(self, ctx: Context):
+    async def daily(self, context: Context):
 
-        if ctx.invoked_subcommand is None:
-            await ctx.send("Invalid subcommand passed...")
+        if context.invoked_subcommand is None:
+            description = """
+                Please specify a subcommand.\n\n
+                `add` - 新增一個每日任務。\n\n
+                `delete` - 刪除你所創建的每日任務。\n\n
+                `listall` - 列出所有每日任務。\n\n
+                `listmine` - 列出你所創建的每日任務。\n\n
+                =========================\n\n
+                `subscribe` - 訂閱，即開啟每日任務提醒功能。\n\n
+                `unsubscribe` - 取消訂閱，即關閉每日任務提醒功能。\n\n
+                `listsub` - 列出所有自己訂閱的每日任務。\n\n
+                =========================\n\n
+                `done` - 簽到一個每日任務。\n\n
+                `listdone` - 列出你今日簽到的每日任務。\n\n
+            """
+            embed = discord.Embed(title="Daily",
+                                  description=description,
+                                  color=discord.Color.blurple())
+            await context.send(embed=embed)
+
 
     @daily.command(
         name="add",
-        description="新增 daily task",
+        description="新增每日任務",
     )
     @checks.not_blacklisted()
     async def daily_add(self, ctx: Context):
 
         view = ui.View()
         open_button = ui.Button(
-            label="點我新增 daily", style=discord.ButtonStyle.primary)
+            label="點我新增每日任務", style=discord.ButtonStyle.primary)
 
         async def callback(interaction: discord.Interaction):
             modal = DailyAddModal()
@@ -92,6 +115,49 @@ class Daily(commands.Cog, name="daily", description=""):
         view.add_item(open_button)
 
         await ctx.send(view=view)
+
+    @daily.command(
+        name="delete",
+        description="刪除每日任務")
+    @checks.not_blacklisted()
+    async def daily_delete(self, context: Context):
+        user_created_tasks = daily_adapter.get_tasks_by_user_id(context.author.id)
+        if len(user_created_tasks) == 0:
+            await context.send("你沒有創建任何每日任務")
+            return
+        options = [discord.SelectOption(label = "取消", value = "cancel")]
+        options.extend([discord.SelectOption(label = task["name"], value = task["id"]) for task in user_created_tasks])
+        view = ui.View()
+        select_ui = ui.Select(placeholder="請選擇要刪除的每日任務",
+                              options=options,
+                              min_values=1,
+                              max_values=max(len(options), 1))
+
+        async def callback(interaction: discord.Interaction):
+
+            task_ids_to_delete = select_ui.values
+            logging.info(task_ids_to_delete)
+            if "cancel" in task_ids_to_delete:
+                await interaction.message.edit(content="取消刪除", view=None)
+                return
+
+            double_check_ui = ButtonCheck()
+
+            await interaction.response.edit_message(content="確認刪除？", view=double_check_ui)
+            await double_check_ui.wait()
+
+            if double_check_ui.value == "yes":
+                daily_adapter.delete_task_by_ids(task_ids_to_delete)
+                await interaction.message.edit(content="刪除成功！", view=None, embed=None)
+            elif double_check_ui.value == "no":
+                await interaction.message.edit(content="取消刪除", view=None, embed=None)
+
+            double_check_ui.stop()
+
+        select_ui.callback = callback
+        view.add_item(select_ui)
+
+        await context.send(view=view, ephemeral=True)
 
 # And then we finally add the cog to the bot so that it can load, unload, reload and use it's content.
 async def setup(bot):
