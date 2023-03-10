@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 field_mapping = {
     'words': ['id', 'content', 'user_id', 'server_id', 'created_at', 'style'],
+    'task': ['id', 'name', 'description', 'created_at', 'created_by', 'server_id']
 }
 
 api_url = "http://140.116.245.105:9453/items"
