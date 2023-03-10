@@ -51,7 +51,6 @@ class WordAddModal(ui.Modal, title="Modal to add words"):
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
-
 class Words(commands.Cog, name="words", description="❤️ 新增/刪除鼓勵或譴責的話！"):
 
     def __init__(self, bot):
@@ -67,11 +66,11 @@ class Words(commands.Cog, name="words", description="❤️ 新增/刪除鼓勵�
         """
         if not context.invoked_subcommand:
             description = """
-                Please specify a subcommand.\n\n
-                `add` - 新增一句鼓勵或譴責的話語。\n\n
-                `delete` - 刪除你所創建的鼓勵或譴責的話語。\n\n
-                `listall` - 列出所有鼓勵或譴責的話語。\n\n
-                `listmine` - 列出你所創建的鼓勵或譴責的話語。\n\n
+                Please specify a subcommand.\n
+                `add` - 新增一句鼓勵或譴責的話語。\n
+                `delete` - 刪除你所創建的鼓勵或譴責的話語。\n
+                `listall` - 列出所有鼓勵或譴責的話語。\n
+                `listmine` - 列出你所創建的鼓勵或譴責的話語。\n
             """
             embed = discord.Embed(title="Words",
                                   description=description,
