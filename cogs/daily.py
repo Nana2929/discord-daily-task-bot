@@ -1,28 +1,26 @@
 # %%
+from datetime import datetime, timedelta
 from typing import List
-from datetime import datetime
-
 from discord.ext import commands
 from discord.ext.commands import Context
 from helpers import checks
-from helpers.utils import ButtonCheck
 import discord
 from discord import ui
 from discord import app_commands
 from discord.ext.forms import Form, Validator, ReactionForm, ReactionMenu
 import math
 import api.daily as daily_adapter
-
+import pytz
 # %%
 # from utils.logger import L
 
 
-def time_conversion(t: str):
-    return datetime.fromisoformat(t)
+def is_the_same_date(date1: str, date2: str):
+    """date1 and date2 are is in format of "YYYY-MM-DD"""
+    return date1[:10] == date2[:10]
 
 
 class DailyAddModal(ui.Modal):
-
     def __init__(self, title="新增 daily", **kwargs):
 
         super().__init__(title=title)
@@ -73,40 +71,24 @@ class Daily(commands.Cog, name="daily", description=""):
 
     @commands.hybrid_group(
         name="daily",
-        description="每日任務",
+        description="",
     )
     @checks.not_blacklisted()
-    async def daily(self, context: Context):
+    async def daily(self, ctx: Context):
 
-        if context.invoked_subcommand is None:
-            description = """
-                Please specify a subcommand.\n
-                `add` - 新增一個每日任務。\n
-                `delete` - 刪除你所創建的每日任務。\n
-                `listall` - 列出所有每日任務。\n
-                `listmine` - 列出你所創建的每日任務。\n
-                =========================\n
-                `subscribe` - 訂閱，即開啟每日任務提醒功能\n
-                `unsubscribe` - 取消訂閱，即關閉每日任務功能。\n
-                `listsub` - 列出所有自己訂閱的每日任務。\n
-                =========================\n
-                `done` - 簽到一個每日任務。\n
-                `listdone` - 列出你今日簽到的每日任務。\n
-            """
-            embed = discord.Embed(title="Daily",
-                                  description=description,
-                                  color=discord.Color.blurple())
-            await context.send(embed=embed)
+        if ctx.invoked_subcommand is None:
+            await ctx.send("Invalid subcommand passed...")
 
     @daily.command(
         name="add",
-        description="新增每日任務",
+        description="新增 daily task",
     )
     @checks.not_blacklisted()
     async def daily_add(self, ctx: Context):
 
         view = ui.View()
-        open_button = ui.Button(label="點我新增每日任務", style=discord.ButtonStyle.primary)
+        open_button = ui.Button(
+            label="點我新增 daily", style=discord.ButtonStyle.primary)
 
         async def callback(interaction: discord.Interaction):
             modal = DailyAddModal()
@@ -138,8 +120,8 @@ class Daily(commands.Cog, name="daily", description=""):
 
             user = await self.bot.fetch_user(int(task["created_by"]))
             embed.add_field(
-                name=f"{task['name']} ",
-                value=f"{user.mention}\n{task['description']}\n-----",
+                name=f"{task['name']}: {task['description']}",
+                value=f"建立者: {user.mention}",
                 inline=False
             )
         await ctx.send(embed=embed)
@@ -169,8 +151,8 @@ class Daily(commands.Cog, name="daily", description=""):
             user = await self.bot.fetch_user(int(task["created_by"]))
 
             embed.add_field(
-                name=f"{task['name']} ",
-                value=f"{user.mention}\n{task['description']}\n-----",
+                name=f"{task['name']}: {task['description']}",
+                value=f"建立者: {user.mention}",
                 inline=False
             )
         await ctx.send(embed=embed)
@@ -182,11 +164,8 @@ class Daily(commands.Cog, name="daily", description=""):
     @checks.not_blacklisted()
     async def daily_done(self, ctx: Context):
 
-        tasks = daily_adapter.get_task(
-            {
-                "server_id": str(ctx.guild.id)
-            }
-        )
+        tasks = daily_adapter.get_task({"server_id": str(ctx.guild.id)})
+        task_id_to_task = {task["id"]: task for task in tasks}
 
         view = ui.View()
         select_options = ui.Select(
@@ -202,27 +181,78 @@ class Daily(commands.Cog, name="daily", description=""):
 
         async def callback(interaction: discord.Interaction):
 
-            selected_values = select_options.values  # list of task id
+            # list of int task id
+            selected_values = [int(v) for v in select_options.values]
 
-            user_historys = daily_adapter.get_history(
+            user_histories = daily_adapter.get_history(
                 {
                     "user_id": str(ctx.author.id),
                     "server_id": str(ctx.guild.id)
                 }
             )
 
-            id_to_history =
+            task_id_to_history = {
+                user_history["task_id"]["id"]: user_history for user_history in user_histories}
 
+            now = daily_adapter.get_current_time()
+            today = now.strftime("%Y-%m-%d")
+            yesterday = (now - timedelta(days=1)
+                         ).strftime("%Y-%m-%d")
 
+            embed = discord.Embed(
+                title="簽到紀錄",
+                color=discord.Color.green()
+            )
 
+            for task_id in selected_values:
 
+                task = task_id_to_task[task_id]
+                ok = False
+                # if history exists, history will be updated
+                history = task_id_to_history.get(
+                    task_id,
+                    {
+                        "user_id": str(ctx.author.id),
+                        "task_id": str(task_id),
+                        "server_id": str(ctx.guild.id),
+                        "last_check": now,
+                        "accumulate": 1,
+                        "consecutive": 1
+                    }
+                )
+                if "id" in history.keys():
 
-            # for selected_value in selected_values:
+                    if is_the_same_date(history["last_check"], today):
+                        embed.add_field(
+                            name=f"您今天已經簽到過 {task['name']} 了",
+                            value=f"累計簽到 {history['accumulate']} 天\n連續簽到 {history['consecutive']} 天",
+                            inline=False
+                        )
+                        continue
 
-            #     if str(selected_value) in user_historys:
-            # #
+                    history["accumulate"] += 1
+                    if is_the_same_date(history["last_check"], yesterday()):
+                        history["consecutive"] += 1
+                    else:
+                        history["consecutive"] = 1
+                    ok = daily_adapter.update_history(**history)
+                else:
+                    ok = daily_adapter.add_history(**history)
 
-            print(selected_values)
+                if ok:
+                    embed.add_field(
+                        name=f"簽到 {task['name']} 成功",
+                        value=f"累計簽到 {history['accumulate']} 天\n連續簽到 {history['consecutive']} 天",
+                        inline=False
+                    )
+                else:
+                    embed.add_field(
+                        name=f"簽到 {task['name']} 失敗",
+                        value="請聯絡管理員",
+                        inline=False
+                    )
+
+            await interaction.response.send_message(embed=embed)
 
         select_options.callback = callback
         view.add_item(select_options)
@@ -233,74 +263,5 @@ class Daily(commands.Cog, name="daily", description=""):
 # And then we finally add the cog to the bot so that it can load, unload, reload and use it's content.
 
 
-    @daily.command(name="delete", description="刪除每日任務")
-    @checks.not_blacklisted()
-    async def daily_delete(self, context: Context):
-        user_created_tasks = daily_adapter.get_tasks_by_user_id(context.author.id)
-        if len(user_created_tasks) == 0:
-            await context.send("你沒有創建任何每日任務")
-            return
-        options = [discord.SelectOption(label="取消", value="cancel")]
-        options.extend([
-            discord.SelectOption(label=task["name"], value=task["id"])
-            for task in user_created_tasks
-        ])
-        view = ui.View()
-        select_ui = ui.Select(placeholder="請選擇要刪除的每日任務",
-                              options=options,
-                              min_values=1,
-                              max_values=max(len(options), 1))
-
-        async def callback(interaction: discord.Interaction):
-
-            task_ids_to_delete = select_ui.values
-            logging.info(task_ids_to_delete)
-            if "cancel" in task_ids_to_delete:
-                await interaction.message.edit(content="取消刪除", view=None)
-                return
-
-            double_check_ui = ButtonCheck()
-
-            await interaction.response.edit_message(content="確認刪除？", view=double_check_ui)
-            await double_check_ui.wait()
-
-            if double_check_ui.value == "yes":
-                daily_adapter.delete_task_by_ids(task_ids_to_delete)
-                await interaction.message.edit(content="刪除成功！", view=None, embed=None)
-            elif double_check_ui.value == "no":
-                await interaction.message.edit(content="取消刪除", view=None, embed=None)
-
-            double_check_ui.stop()
-
-        select_ui.callback = callback
-        view.add_item(select_ui)
-
-        await context.send(view=view, ephemeral=True)
-
-    @daily.command(name="listdone", description="列出簽到的每日任務")
-    @checks.not_blacklisted()
-    async def daily_listdone(self, context: Context, top_n: int = 1):
-        user_id = context.author.id
-        tasks = daily_adapter.get_tasks_by_user_id(user_id)
-        if len(tasks) == 0:
-            await context.send("你沒有簽到過任何每日任務")
-            return
-        tasks = sorted(tasks, key=lambda x: time_conversion(x["last_check"]), reverse=True)
-        if len(tasks) > top_n:
-            tasks = tasks[:top_n]
-
-        embed = discord.Embed(title=f"最近 {top_n} 個簽到的每日任務",
-                              description="",
-                              color="#edf6e5")
-        for task in tasks:
-            name = task["name"]
-            name_decorated = f"📍{name}"
-            consecutive, accumulate = task["consecutive"], task["accumulate"]
-            message = f" 你已經連續簽到 {consecutive} 日，累計簽到 {accumulate} 日，再接再厲！"
-            embed.add_field(name=name_decorated, value=message, inline=False)
-        await context.send(embed=embed)
-
-
-# And then we finally add the cog to the bot so that it can load, unload, reload and use it's content.
 async def setup(bot):
     await bot.add_cog(Daily(bot))
