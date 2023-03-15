@@ -2,7 +2,7 @@ from typing import List, Dict, Any
 from datetime import datetime
 from discord.ext import commands
 from discord.ext.commands import Context
-from helpers import checks
+from api import checks
 from helpers.utils import ButtonCheck
 import discord
 from discord import ui
@@ -78,7 +78,7 @@ class Words(commands.Cog, name="words", description="❤️ 新增/刪除鼓勵�
             await context.send(embed=embed)
 
     @words.command(name="add", description="新增一句鼓勵或譴責的話語。")
-    @checks.not_blacklisted()
+    @checks.user_registered()
     async def add(self, context: Context):
         view = ui.View()
         str_options = ["提醒", "譴責"]
@@ -103,7 +103,7 @@ class Words(commands.Cog, name="words", description="❤️ 新增/刪除鼓勵�
         await context.message.delete()
 
     @words.command(name="listall", description="列出所有鼓勵或譴責的話語。")
-    @checks.not_blacklisted()
+    @checks.user_registered()
     @app_commands.guilds(discord.Object(id=GUILD_ID))
     async def listall(self, context: Context):
         server_words = words_adapter.get_all_words()
@@ -127,7 +127,7 @@ class Words(commands.Cog, name="words", description="❤️ 新增/刪除鼓勵�
 
         await context.send(embed=embed)
     @words.command(name="listmine", description="列出你創建的鼓勵或譴責的話語。")
-    @checks.not_blacklisted()
+    @checks.user_registered()
     @app_commands.guilds(discord.Object(id=GUILD_ID))
     async def listmine(self, context: Context):
         server_words = words_adapter.get_all_words()
@@ -143,7 +143,7 @@ class Words(commands.Cog, name="words", description="❤️ 新增/刪除鼓勵�
         await context.send(embed=embed)
 
     @words.command(name="del", description="刪除你創建的一句鼓勵或譴責的話語。")
-    @checks.not_blacklisted()
+    @checks.user_registered()
     async def delete(self, context: Context):
         user_words = words_adapter.get_words_by_user(context.author.id)
         if not user_words:

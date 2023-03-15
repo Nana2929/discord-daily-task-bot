@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from typing import List
 from discord.ext import commands
 from discord.ext.commands import Context
-from helpers import checks
+from api import checks
 import discord
 from discord import ui
 from discord import app_commands
@@ -73,7 +73,7 @@ class Daily(commands.Cog, name="daily", description=""):
         name="daily",
         description="",
     )
-    @checks.not_blacklisted()
+    @checks.user_registered()
     async def daily(self, ctx: Context):
 
         if ctx.invoked_subcommand is None:
@@ -83,7 +83,7 @@ class Daily(commands.Cog, name="daily", description=""):
         name="add",
         description="新增 daily task",
     )
-    @checks.not_blacklisted()
+    @checks.user_registered()
     async def daily_add(self, ctx: Context):
 
         view = ui.View()
@@ -103,7 +103,7 @@ class Daily(commands.Cog, name="daily", description=""):
         name="listall",
         description="列出所有 daily task",
     )
-    @checks.not_blacklisted()
+    @checks.user_registered()
     async def daily_listall(self, ctx: Context):
 
         tasks_in_server = daily_adapter.get_task(
@@ -130,7 +130,7 @@ class Daily(commands.Cog, name="daily", description=""):
         name="listmine",
         description="列出自己的 daily task",
     )
-    @checks.not_blacklisted()
+    @checks.user_registered()
     async def daily_listmine(self, ctx: Context):
 
         tasks = daily_adapter.get_task(
@@ -161,7 +161,7 @@ class Daily(commands.Cog, name="daily", description=""):
         name="done",
         description="簽到任務",
     )
-    @checks.not_blacklisted()
+    @checks.user_registered()
     async def daily_done(self, ctx: Context):
 
         tasks = daily_adapter.get_task({"server_id": str(ctx.guild.id)})
