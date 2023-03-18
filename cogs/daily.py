@@ -210,10 +210,12 @@ class SubscribeAddModal(ui.Modal):
         self.add_item(ui.TextInput(
             label="譴責時間(0~23)",
             required=True,
+            min_length=1,
             max_length=2
         ))
         self.add_item(ui.TextInput(
             label="提醒時間(0~23)",
+            min_length=1,
             required=True,
             max_length=2
         ))
