@@ -13,7 +13,6 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import Context
 
-from helpers import checks
 
 
 class Choice(discord.ui.View):
@@ -102,7 +101,6 @@ class Fun(commands.Cog, name="fun"):
         name="randomfact",
         description="Get a random fact."
     )
-    @checks.not_blacklisted()
     async def randomfact(self, context: Context) -> None:
         """
         Get a random fact.
@@ -130,7 +128,6 @@ class Fun(commands.Cog, name="fun"):
         name="coinflip",
         description="Make a coin flip, but give your bet before."
     )
-    @checks.not_blacklisted()
     async def coinflip(self, context: Context) -> None:
         """
         Make a coin flip, but give your bet before.
@@ -161,7 +158,6 @@ class Fun(commands.Cog, name="fun"):
         name="rps",
         description="Play the rock paper scissors game against the bot."
     )
-    @checks.not_blacklisted()
     async def rock_paper_scissors(self, context: Context) -> None:
         """
         Play the rock paper scissors game against the bot.
@@ -177,7 +173,6 @@ class Fun(commands.Cog, name="fun"):
         name="doggo",
         description="See a cute dog when you are tired."
     )
-    @checks.not_blacklisted()
     async def see_doggo(self, context: Context, *, breed: str = None) -> None:
         """
         See a doggo.
