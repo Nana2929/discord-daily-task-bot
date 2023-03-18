@@ -203,6 +203,61 @@ class DailySubscribeView(ui.View):
         self.add_item(select_options)
 
 
+class DailyUnsubscribeView(ui.View):
+    def __init__(self, ctx: Context) -> None:
+        super().__init__()
+
+        subscribes = subscribe_adapter.get_subscribe(
+            user_id=str(ctx.author.id), server_id=str(ctx.guild.id))
+
+        subscribe_id_to_subscribe = {
+            sub["id"]: sub for sub in subscribes}
+
+        if len(subscribes) == 0:
+            return
+
+        options = ui.Select(
+            placeholder="請選擇要取消訂閱的每日任務",
+            min_values=1,
+            max_values=len(subscribes)
+        )
+
+        print("==================", subscribes)
+
+        for sub in subscribes:
+            options.add_option(
+                label=f"📌 {sub['task_id']['name']} {sub['task_id']['description'][:10]}",
+                value=sub["id"]
+            )
+
+        async def callback(interaction: discord.Interaction):
+
+            embed = discord.Embed(
+                title="以下是取消訂閱的項目",
+                color=discord.Colour.lighter_gray()
+            )
+
+            for value in options.values:
+                if subscribe_adapter.delete_subscribe(id=value):
+                    embed.add_field(
+                        name=f"🔕 取消訂閱 {subscribe_id_to_subscribe[int(value)]['task_id']['name']} 成功",
+                        value="",
+                        inline=False
+                    )
+                else:
+                    embed.add_field(
+                        name=f"🔕 取消訂閱 {subscribe_id_to_subscribe[int(value)]['task_id']['name']} 失敗",
+                        value="請聯絡管理員",
+                        inline=False
+                    )
+
+            await interaction.response.edit_message(
+                content=None, view=None, embed=embed)
+
+        options.callback = callback
+        self.add_item(options)
+
+
 class SubscribeAddModal(ui.Modal):
     def __init__(self, selected_task_infos: Dict[int, Dict], user_time_zone: int, title="設定譴責及提醒時間 📆", **kwargs):
         super().__init__(title=title)
@@ -411,7 +466,19 @@ class Daily(commands.Cog, name="daily", description=""):
         else:
             await ctx.send(view=DailySubscribeView(ctx=ctx))
 
+    @ daily.command(
+        name="unsubscribe",
+        description="取消訂閱每日任務通知",
+    )
+    @ checks.user_registered()
+    async def daily_unsuscribe(self, ctx: Context):
+
+        view = DailyUnsubscribeView(ctx=ctx)
+
+        await ctx.send(view=view)
 
 # And then we finally add the cog to the bot so that it can load, unload, reload and use it's content.
+
+
 async def setup(bot):
     await bot.add_cog(Daily(bot))
