@@ -7,7 +7,7 @@ Version: 5.5.0
 """
 
 from discord.ext import commands
-
+from requests import Response
 
 class UserBlacklisted(commands.CheckFailure):
     """
@@ -33,3 +33,8 @@ class DupCheckIn(commands.CheckFailure):
     def __init__(self, message="Duplicated check-in of the same challenge!"):
         self.message = message
         super().__init__(self.message)
+
+
+def get_error(reuqest_response: dict):
+    error_msg = reuqest_response['errors'][0]['message']
+    return error_msg
