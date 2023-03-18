@@ -1,5 +1,9 @@
 import discord
+import pytz
+from datetime import datetime
 
+def get_current_time():
+    return datetime.now(tz=pytz.UTC)
 
 class ButtonCheck(discord.ui.View):
 
