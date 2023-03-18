@@ -454,7 +454,7 @@ class Daily(commands.Cog, name="daily", description=""):
         description="訂閱每日任務通知",
     )
     @ checks.user_registered()
-    async def daily_suscribe(self, ctx: Context):
+    async def daily_subscribe(self, ctx: Context):
 
         view = DailySubscribeView(ctx=ctx)
 
@@ -468,7 +468,7 @@ class Daily(commands.Cog, name="daily", description=""):
         description="取消訂閱每日任務通知",
     )
     @ checks.user_registered()
-    async def daily_unsuscribe(self, ctx: Context):
+    async def daily_unsubscribe(self, ctx: Context):
 
         view = DailyUnsubscribeView(ctx=ctx)
 
