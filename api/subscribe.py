@@ -18,13 +18,14 @@ def add_subscribe(task_id: int, user_id: str, server_id: str, remind_time: int, 
     ).ok
 
 
-def get_subscribe(user_id: str, server_id: str, **kwargs):
+def get_subscribe(filter_rules, **kwargs):
 
     subscribe_querier = Querier("subscribe")
 
     subscribe_querier.fields("fields", "task_id.name,task_id.id,task_id.description")
-    subscribe_querier.filter_by("user_id", "eq", user_id).filter_by(
-        "server_id", "eq", server_id)
+
+    for k, v in filter_rules.items():
+        subscribe_querier.filter_by(k, "eq", v)
 
     return subscribe_querier.query()
 
