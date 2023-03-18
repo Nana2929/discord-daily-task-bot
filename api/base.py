@@ -14,7 +14,8 @@ field_mapping = {
     'task': ['id', 'name', 'description', 'created_at', 'server_id', 'created_by'],
     'history': ['id', 'user_id', 'task_id', 'accumulate', 'consecutive', 'server_id', 'last_check'],
     'user': ['id', 'time_zone'],
-    'subscribe': ['id', 'task_id', 'user_id', 'server_id', 'remind_time', 'condemn_time']
+    'subscribe': ['id', 'task_id', 'user_id', 'server_id', 'remind_time', 'condemn_time'],
+    'server': ['id'],
 }
 
 
@@ -34,9 +35,11 @@ class Querier(Request):
         super().__init__(resource)
 
     def query(self):
-        self._params["fields[]"] += ",".join(map(lambda f: f"{f}", self._fields))
+        self._params["fields[]"] += ",".join(
+            map(lambda f: f"{f}", self._fields))
 
-        logger.info(f"GET {self._collection} from API: url={self._url} params={self._params}")
+        logger.info(
+            f"GET {self._collection} from API: url={self._url} params={self._params}")
 
         response = requests.get(self._url, params=self._params).json()
         if "data" in response:
@@ -52,7 +55,8 @@ class Querier(Request):
     def filter_by(self, field: str, operator: str, values: str):
         key = f"filter[{field}][_{operator}]="
         # http://140.116.245.105:9453/items/words?filter[user_id][_eq]=918353320068915210
-        self._params[key] = values if not isinstance(values, list) else ",".join(values)
+        self._params[key] = values if not isinstance(
+            values, list) else ",".join(values)
         return self
 
     def fields(self, key: str, val: str):
@@ -87,5 +91,6 @@ class RequestUpdate(Request):
 
     def __call__(self, item_id: Any, **kwargs):
         self._url += f"/{item_id}"
-        updated_fields_dict = {k: v for k, v in kwargs.items() if k in self._fields}
+        updated_fields_dict = {k: v for k,
+                               v in kwargs.items() if k in self._fields}
         return requests.patch(self._url, json=updated_fields_dict)

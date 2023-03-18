@@ -5,6 +5,7 @@ from discord import ui
 from api import user as user_adapter
 from api import checks
 from exceptions import get_error
+from api import server as server_adapter
 
 
 class UserAddModal(ui.Modal, title="modal to add the user"):
@@ -20,11 +21,14 @@ class UserAddModal(ui.Modal, title="modal to add the user"):
         self.add_item(content)
 
     async def on_submit(self, interaction: discord.Interaction):
+
         timezone = self.children[0].value
+
         if not checks.is_utc_legal(timezone):
             await interaction.response.edit_message(
                 content=f"時區不合法，請輸入範圍為 -12 到 14 的數字。", view=None)
             return
+
         converted_timezone = int(
             timezone) if not timezone.startswith("+") else int(timezone[1:])
         formatted_timezone = f"+{converted_timezone}" if converted_timezone > 0 else f"{converted_timezone}"
@@ -32,19 +36,27 @@ class UserAddModal(ui.Modal, title="modal to add the user"):
                               description=f"\n \
                               時區：UTC {formatted_timezone}",
                               color=discord.Color.green())
+        
         user_exists = user_adapter.check_user_exists(interaction.user.id)
+
         if user_exists:
             msg = user_adapter.update_user(
                 user_id=str(interaction.user.id),
-                time_zone= converted_timezone
+                time_zone=converted_timezone
             )
             content = f"你的註冊時區已經變更為 UTC {converted_timezone}。"
         else:
             content = None
+
             msg = user_adapter.add_one_user(user_id=str(interaction.user.id),
-                                     time_zone=converted_timezone)
+                                            time_zone=converted_timezone)
+
         if "errors" in msg:
             content = f"註冊或修改失敗，請稍後再試。錯誤訊息：{get_error(msg)}"
+
+        if not server_adapter.check_server_exists(interaction.guild.id):
+            if not server_adapter.add_server(server_id=str(interaction.guild.id)):
+                content = f"\n❗錯誤: 伺服器註冊失敗，請聯絡管理員"
 
         await interaction.response.edit_message(content=content,
                                                 view=None,
