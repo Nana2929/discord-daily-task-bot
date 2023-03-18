@@ -11,7 +11,7 @@ def add_server(server_id: str, **kwargs):
 
 def check_server_exists(server_id:str):
 
-    server_querier = Querier("user")
+    server_querier = Querier("server")
     server_querier = server_querier.filter_by("id", "eq", server_id)
     result = server_querier.query()
     return len(result) == 1
