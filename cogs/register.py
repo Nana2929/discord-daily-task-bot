@@ -25,13 +25,14 @@ class UserAddModal(ui.Modal, title="modal to add the user"):
             await interaction.response.edit_message(
                 content=f"時區不合法，請輸入範圍為 -12 到 14 的數字。", view=None)
             return
-        embed = discord.Embed(title="註冊成功",
-                              description=f"\n \
-                              時區：UTC {timezone}",
-                              color=discord.Color.green())
-        user_exists = user_adapter.check_user_exists(interaction.user.id)
         converted_timezone = int(
             timezone) if not timezone.startswith("+") else int(timezone[1:])
+        formatted_timezone = f"+{converted_timezone}" if converted_timezone > 0 else f"{converted_timezone}"
+        embed = discord.Embed(title="註冊成功",
+                              description=f"\n \
+                              時區：UTC {formatted_timezone}",
+                              color=discord.Color.green())
+        user_exists = user_adapter.check_user_exists(interaction.user.id)
         if user_exists:
             msg = user_adapter.update_user(
                 user_id=str(interaction.user.id),
