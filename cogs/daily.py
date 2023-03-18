@@ -11,8 +11,6 @@ from discord.ext.forms import Form, Validator, ReactionForm, ReactionMenu
 import math
 import api.daily as daily_adapter
 import pytz
-# %%
-# from utils.logger import L
 
 
 def is_the_same_date(date1: str, date2: str):
@@ -32,10 +30,11 @@ class DailyAddModal(ui.Modal):
         ))
         self.add_item(ui.TextInput(
             label="Description",
-            required=True,
+            required=False,
             style=discord.TextStyle.paragraph,
             max_length=255
         ))
+
 
     async def on_submit(self, interaction: discord.Interaction):
 
@@ -73,7 +72,7 @@ class Daily(commands.Cog, name="daily", description=""):
         name="daily",
         description="",
     )
-    @checks.user_registered()
+    @checks.is_user_registered()
     async def daily(self, ctx: Context):
 
       if ctx.invoked_subcommand is None:
@@ -96,11 +95,12 @@ class Daily(commands.Cog, name="daily", description=""):
                                   color=discord.Color.blurple())
             await ctx.send(embed=embed)
 
+
     @daily.command(
         name="add",
         description="新增 daily task",
     )
-    @checks.user_registered()
+    @checks.is_user_registered()
     async def daily_add(self, ctx: Context):
 
         view = ui.View()
@@ -120,7 +120,7 @@ class Daily(commands.Cog, name="daily", description=""):
         name="listall",
         description="列出所有 daily task",
     )
-    @checks.user_registered()
+    @checks.is_user_registered()
     async def daily_listall(self, ctx: Context):
 
         tasks_in_server = daily_adapter.get_task(
@@ -147,7 +147,7 @@ class Daily(commands.Cog, name="daily", description=""):
         name="listmine",
         description="列出自己的 daily task",
     )
-    @checks.user_registered()
+    @checks.is_user_registered()
     async def daily_listmine(self, ctx: Context):
 
         tasks = daily_adapter.get_task(
@@ -178,7 +178,7 @@ class Daily(commands.Cog, name="daily", description=""):
         name="done",
         description="簽到任務",
     )
-    @checks.user_registered()
+    @checks.is_user_registered()
     async def daily_done(self, ctx: Context):
 
         tasks = daily_adapter.get_task({"server_id": str(ctx.guild.id)})
