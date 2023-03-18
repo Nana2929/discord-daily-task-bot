@@ -4,7 +4,8 @@ try:
 except:
     from base import Querier, RequestAdd, RequestDelete, RequestUpdate
 
-def add_subscribe(task_id:int, user_id:str, server_id:str, remind_time:int, condemn_time:int, **kwargs):
+
+def add_subscribe(task_id: int, user_id: str, server_id: str, remind_time: int, condemn_time: int, **kwargs):
 
     subscribe_adder = RequestAdd("subscribe")
 
@@ -17,14 +18,16 @@ def add_subscribe(task_id:int, user_id:str, server_id:str, remind_time:int, cond
     ).ok
 
 
-def get_subscribe(user_id: str, server_id:str, **kwargs):
+def get_subscribe(user_id: str, server_id: str, **kwargs):
 
     subscribe_querier = Querier("subscribe")
 
-    subscribe_querier.fields("fields", "task_id.name,task_id.id")
-    subscribe_querier.filter_by("user_id", "eq", user_id).filter_by("server_id", "eq", server_id)
+    subscribe_querier.fields("fields", "task_id.name,task_id.id,task_id.description")
+    subscribe_querier.filter_by("user_id", "eq", user_id).filter_by(
+        "server_id", "eq", server_id)
 
     return subscribe_querier.query()
+
 
 def update_subscribe(id, remind_time, condemn_time, **kwargs):
 
@@ -34,3 +37,9 @@ def update_subscribe(id, remind_time, condemn_time, **kwargs):
         remind_time=remind_time,
         condemn_time=condemn_time
     ).ok
+
+
+def delete_subscribe(id:int, **kwargs):
+
+    subscribe_deleter = RequestDelete("subscribe")
+    return subscribe_deleter(item_id=int(id)).ok
