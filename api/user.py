@@ -12,3 +12,13 @@ def check_user_exists(user_id:str):
     return len(result) == 1
 
 
+def get_user(user_id:str):
+
+    user_querier = Querier("user")
+
+    user_querier = user_querier.filter_by("id", "eq", user_id)
+
+    result = user_querier.query()
+
+    return result[0]
+
