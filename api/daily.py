@@ -7,9 +7,6 @@ except:
 from datetime import datetime
 import pytz
 
-def get_current_time():
-    return datetime.now(tz=pytz.UTC)
-
 def add_task(user_id, server_id, name, description):
     data = {
         "created_by": str(user_id),

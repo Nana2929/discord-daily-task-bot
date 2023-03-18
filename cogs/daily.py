@@ -13,13 +13,10 @@ import api.daily as daily_adapter
 import api.user as user_adapter
 import api.subscribe as subscribe_adapter
 import pytz
-# %%
-# from utils.logger import L
+from helpers.utils import get_current_time, is_the_same_date
 
 
-def is_the_same_date(date1: str, date2: str):
-    """date1 and date2 are is in format of "YYYY-MM-DD"""
-    return date1[:10] == date2[:10]
+
 
 
 class DailyDoneView(ui.View):
@@ -56,7 +53,7 @@ class DailyDoneView(ui.View):
             task_id_to_history = {
                 user_history["task_id"]["id"]: user_history for user_history in user_histories}
 
-            now = daily_adapter.get_current_time()
+            now = get_current_time()
             today = now.strftime("%Y-%m-%d")
             yesterday = (now - timedelta(days=1)
                          ).strftime("%Y-%m-%d")
