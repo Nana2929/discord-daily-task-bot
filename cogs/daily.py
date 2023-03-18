@@ -76,8 +76,25 @@ class Daily(commands.Cog, name="daily", description=""):
     @checks.user_registered()
     async def daily(self, ctx: Context):
 
-        if ctx.invoked_subcommand is None:
-            await ctx.send("Invalid subcommand passed...")
+      if ctx.invoked_subcommand is None:
+            description = """
+                Please specify a subcommand.\n
+                `add` - 新增一個每日任務。\n
+                `delete` - 刪除你所創建的每日任務。\n
+                `listall` - 列出所有每日任務。\n
+                `listmine` - 列出你所創建的每日任務。\n
+                =========================\n
+                `subscribe` - 訂閱，即開啟每日任務提醒功能\n
+                `unsubscribe` - 取消訂閱，即關閉每日任務功能。\n
+                `listsub` - 列出所有自己訂閱的每日任務。\n
+                =========================\n
+                `done` - 簽到一個每日任務。\n
+                `listdone` - 列出你今日簽到的每日任務。\n
+            """
+            embed = discord.Embed(title="Daily",
+                                  description=description,
+                                  color=discord.Color.blurple())
+            await ctx.send(embed=embed)
 
     @daily.command(
         name="add",
