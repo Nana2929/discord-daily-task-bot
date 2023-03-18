@@ -11,7 +11,7 @@ from discord.ext.forms import Form, Validator, ReactionForm, ReactionMenu
 import math
 import api.daily as daily_adapter
 import pytz
-
+from helpers.utils import get_current_time
 
 def is_the_same_date(date1: str, date2: str):
     """date1 and date2 are is in format of "YYYY-MM-DD"""
@@ -211,7 +211,7 @@ class Daily(commands.Cog, name="daily", description=""):
             task_id_to_history = {
                 user_history["task_id"]["id"]: user_history for user_history in user_histories}
 
-            now = daily_adapter.get_current_time()
+            now = get_current_time()
             today = now.strftime("%Y-%m-%d")
             yesterday = (now - timedelta(days=1)
                          ).strftime("%Y-%m-%d")
