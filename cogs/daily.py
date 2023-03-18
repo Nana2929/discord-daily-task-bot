@@ -217,8 +217,6 @@ class DailyUnsubscribeView(ui.View):
             max_values=len(subscribes)
         )
 
-        print("==================", subscribes)
-
         for sub in subscribes:
             options.add_option(
                 label=f"📌 {sub['task_id']['name']} {sub['task_id']['description'][:10]}",
@@ -378,7 +376,7 @@ class Daily(commands.Cog, name="daily", description=""):
 
     @ daily.command(
         name="add",
-        description="新增 daily task",
+        description="新增每日任務",
     )
     @checks.is_user_registered()
     async def daily_add(self, ctx: Context):
@@ -398,7 +396,7 @@ class Daily(commands.Cog, name="daily", description=""):
 
     @ daily.command(
         name="listall",
-        description="列出所有 daily task",
+        description="列出所有每日任務",
     )
     @checks.is_user_registered()
     async def daily_listall(self, ctx: Context):
@@ -407,8 +405,8 @@ class Daily(commands.Cog, name="daily", description=""):
             {"server_id": str(ctx.guild.id)})
 
         embed = discord.Embed(
-            title="所有 daily task",
-            description=f"共有 {len(tasks_in_server)} 個 task",
+            title="所有每日任務",
+            description=f"共有 {len(tasks_in_server)} 個任務",
             color=discord.Color.green()
         )
 
@@ -424,7 +422,7 @@ class Daily(commands.Cog, name="daily", description=""):
 
     @ daily.command(
         name="listmine",
-        description="列出自己的 daily task",
+        description="列出自己的每日任務",
     )
     @checks.is_user_registered()
     async def daily_listmine(self, ctx: Context):
@@ -437,7 +435,7 @@ class Daily(commands.Cog, name="daily", description=""):
         )
 
         embed = discord.Embed(
-            title="以下是您建立的 daily task",
+            title="以下是您建立的每日任務",
             description=f"共有 {len(tasks)} 個 task",
             color=discord.Color.green()
         )
@@ -467,72 +465,6 @@ class Daily(commands.Cog, name="daily", description=""):
     )
     @ checks.is_user_registered()
     async def daily_subscribe(self, ctx: Context):
-        tasks = daily_adapter.get_task({"server_id": str(ctx.guild.id)})
-        task_id_to_task = {task["id"]: task for task in tasks}
-
-        view = ui.View()
-        select_options = ui.Select(
-            placeholder="請選擇要簽到的每日任務",
-            min_values=1,
-            max_values=len(tasks))
-
-        for task in tasks:
-            select_options.add_option(
-                label=f"📌 {task['name']} {task['description'][:10]}",
-                value=task["id"]
-            )
-
-        async def callback(interaction: discord.Interaction):
-
-            # list of int task id
-            selected_values = [int(v) for v in select_options.values]
-
-            user_histories = daily_adapter.get_history(
-                {
-                    "user_id": str(ctx.author.id),
-                    "server_id": str(ctx.guild.id)
-                }
-            )
-
-            task_id_to_history = {
-                user_history["task_id"]["id"]: user_history for user_history in user_histories}
-
-            now = get_current_time()
-            today = now.strftime("%Y-%m-%d")
-            yesterday = (now - timedelta(days=1)
-                         ).strftime("%Y-%m-%d")
-
-            embed = discord.Embed(
-                title="簽到紀錄",
-                color=discord.Color.green()
-            )
-
-            for task_id in selected_values:
-
-                task = task_id_to_task[task_id]
-                ok = False
-                # if history exists, history will be updated
-                history = task_id_to_history.get(
-                    task_id,
-                    {
-                        "user_id": str(ctx.author.id),
-                        "task_id": str(task_id),
-                        "server_id": str(ctx.guild.id),
-                        "last_check": now,
-                        "accumulate": 1,
-                        "consecutive": 1
-                    }
-                )
-                if "id" in history.keys():
-
-                    if is_the_same_date(history["last_check"], today):
-                        embed.add_field(
-                            name=f"您今天已經簽到過 {task['name']} 了",
-                            value=f"累計簽到 {history['accumulate']} 天\n連續簽到 {history['consecutive']} 天",
-                            inline=False
-                        )
-                        continue
-
         view = DailySubscribeView(ctx=ctx)
 
         if len(view.tasks) == 0:
@@ -544,7 +476,7 @@ class Daily(commands.Cog, name="daily", description=""):
         name="unsubscribe",
         description="取消訂閱每日任務通知",
     )
-    @ checks.user_registered()
+    @ checks.is_user_registered()
     async def daily_unsubscribe(self, ctx: Context):
 
         view = DailyUnsubscribeView(ctx=ctx)
