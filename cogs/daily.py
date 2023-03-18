@@ -15,6 +15,14 @@ import api.subscribe as subscribe_adapter
 import pytz
 from helpers.utils import get_current_time, is_the_same_date
 
+def read_file(fp="./data/mottos.txt"):
+    with open(fp, "r") as f:
+        return f.read().splitlines()
+
+def get_reward_word():
+    import random
+    words = read_file()
+    return random.choice(words)
 
 class DailyDoneView(ui.View):
 
@@ -112,6 +120,7 @@ class DailyDoneView(ui.View):
 
         select_options.callback = callback
         self.add_item(select_options)
+
 
 
 class DailyAddModal(ui.Modal):
@@ -256,13 +265,13 @@ class SubscribeAddModal(ui.Modal):
         super().__init__(title=title)
 
         self.add_item(ui.TextInput(
-            label="譴責時間(0~23)",
+            label="譴責時間（0~23）",
             required=True,
             min_length=1,
             max_length=2
         ))
         self.add_item(ui.TextInput(
-            label="提醒時間(0~23)",
+            label="提醒時間（0~23）",
             min_length=1,
             required=True,
             max_length=2
@@ -276,14 +285,14 @@ class SubscribeAddModal(ui.Modal):
 
         if not remind_time.isdigit() or not condemn_time.isdigit():
             await interaction.response.edit_message(
-                content=f"格式錯誤!請輸入數字 0~23", view=None)
+                content=f"格式錯誤！請輸入數字 0~23", view=None)
             return
 
         remind_time, condemn_time = int(remind_time), int(condemn_time)
 
         if remind_time not in range(24) or condemn_time not in range(24):
             await interaction.response.edit_message(
-                content=f"格式錯誤!請輸入數字 0~23", view=None)
+                content=f"格式錯誤！請輸入數字 0~23", view=None)
             return
 
         user_subscribes = {
@@ -466,7 +475,6 @@ class Daily(commands.Cog, name="daily", description=""):
     @ checks.is_user_registered()
     async def daily_subscribe(self, ctx: Context):
         view = DailySubscribeView(ctx=ctx)
-
         if len(view.tasks) == 0:
             await ctx.send("目前沒有任何任務可以訂閱")
         else:
