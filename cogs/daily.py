@@ -16,9 +16,6 @@ import pytz
 from helpers.utils import get_current_time, is_the_same_date
 
 
-
-
-
 class DailyDoneView(ui.View):
 
     def __init__(self, ctx: Context, **kwargs):
@@ -319,32 +316,28 @@ class SubscribeAddModal(ui.Modal):
             subscribe["condemn_time"] = (
                 condemn_time - self.user_time_zone + 24) % 24
 
+            embed_name, embed_value = "", ""
+
             if "id" in subscribe:  # update
+
                 if subscribe_adapter.update_subscribe(**subscribe):
-                    embed.add_field(
-                        name=f"🔄 更新 {self.selected_task_infos[task_id]['name']} 成功",
-                        value="",
-                        inline=False
-                    )
+                    embed_name = f"🔄 更新 {self.selected_task_infos[task_id]['name']} 成功"
                 else:
-                    embed.add_field(
-                        name=f"🔄 更新 {self.selected_task_infos[task_id]['name']} 失敗",
-                        value="窩不知道...",
-                        inline=False
-                    )
+                    embed_name = f"🔄 更新 {self.selected_task_infos[task_id]['name']} 失敗",
+                    embed_value = "請連絡管理員",
             else:
                 if subscribe_adapter.add_subscribe(**subscribe):
-                    embed.add_field(
-                        name=f"🔔 訂閱 {self.selected_task_infos[task_id]['name']} 成功",
-                        value="",
-                        inline=False
-                    )
+                    embed_name = f"🔔 訂閱 {self.selected_task_infos[task_id]['name']} 成功",
                 else:
-                    embed.add_field(
-                        name=f"🔔 訂閱 {self.selected_task_infos[task_id]['name']} 失敗",
-                        value="窩不知道...",
-                        inline=False
-                    )
+                    embed_name = f"🔔 訂閱 {self.selected_task_infos[task_id]['name']} 失敗",
+                    embed_value = "請連絡管理員",
+
+            embed.add_field(
+                name=embed_name,
+                value=embed_value,
+                inline=False
+            )
+
         return await interaction.response.edit_message(
             content=None, view=None, embed=embed)
 
