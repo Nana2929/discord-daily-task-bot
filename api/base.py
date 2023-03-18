@@ -3,9 +3,11 @@ import os
 import dataclasses
 import requests
 import logging
-
+from datetime import datetime
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+api_url = "http://140.116.245.105:9453/items"
 
 field_mapping = {
     'words': ['content', 'user_id', 'server_id', 'created_at', 'style'],
@@ -14,8 +16,6 @@ field_mapping = {
     'user': ['id', 'time_zone'],
     'subscribe': ['id', 'task_id', 'user_id', 'server_id', 'remind_time', 'condemn_time']
 }
-
-api_url = "http://140.116.245.105:9453/items"
 
 
 class Request:

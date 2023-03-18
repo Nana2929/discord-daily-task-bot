@@ -11,7 +11,6 @@ from discord import app_commands
 from discord.ext import commands
 from discord.ext.commands import Context
 
-from helpers import checks, db_manager
 
 
 class Moderation(commands.Cog, name="moderation"):
@@ -24,7 +23,6 @@ class Moderation(commands.Cog, name="moderation"):
     )
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_permissions(kick_members=True)
-    @checks.not_blacklisted()
     @app_commands.describe(user="The user that should be kicked.", reason="The reason why the user should be kicked.")
     async def kick(self, context: Context, user: discord.User, *, reason: str = "Not specified") -> None:
         """
@@ -73,7 +71,6 @@ class Moderation(commands.Cog, name="moderation"):
     )
     @commands.has_permissions(manage_nicknames=True)
     @commands.bot_has_permissions(manage_nicknames=True)
-    @checks.not_blacklisted()
     @app_commands.describe(user="The user that should have a new nickname.", nickname="The new nickname that should be set.")
     async def nick(self, context: Context, user: discord.User, *, nickname: str = None) -> None:
         """
@@ -104,7 +101,6 @@ class Moderation(commands.Cog, name="moderation"):
     )
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
-    @checks.not_blacklisted()
     @app_commands.describe(user="The user that should be banned.", reason="The reason why the user should be banned.")
     async def ban(self, context: Context, user: discord.User, *, reason: str = "Not specified") -> None:
         """
@@ -151,7 +147,6 @@ class Moderation(commands.Cog, name="moderation"):
         description="Manage warnings of a user on a server.",
     )
     @commands.has_permissions(manage_messages=True)
-    @checks.not_blacklisted()
     async def warning(self, context: Context) -> None:
         """
         Manage warnings of a user on a server.
@@ -169,7 +164,6 @@ class Moderation(commands.Cog, name="moderation"):
         name="add",
         description="Adds a warning to a user in the server.",
     )
-    @checks.not_blacklisted()
     @commands.has_permissions(manage_messages=True)
     @app_commands.describe(user="The user that should be warned.", reason="The reason why the user should be warned.")
     async def warning_add(self, context: Context, user: discord.User, *, reason: str = "Not specified") -> None:
@@ -202,7 +196,6 @@ class Moderation(commands.Cog, name="moderation"):
         name="remove",
         description="Removes a warning from a user in the server.",
     )
-    @checks.not_blacklisted()
     @commands.has_permissions(manage_messages=True)
     @app_commands.describe(user="The user that should get their warning removed.", warn_id="The ID of the warning that should be removed.")
     async def warning_remove(self, context: Context, user: discord.User, warn_id: int) -> None:
@@ -226,7 +219,6 @@ class Moderation(commands.Cog, name="moderation"):
         description="Shows the warnings of a user in the server.",
     )
     @commands.has_guild_permissions(manage_messages=True)
-    @checks.not_blacklisted()
     @app_commands.describe(user="The user you want to get the warnings of.")
     async def warning_list(self, context: Context, user: discord.User):
         """
@@ -255,7 +247,6 @@ class Moderation(commands.Cog, name="moderation"):
     )
     @commands.has_guild_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_messages=True)
-    @checks.not_blacklisted()
     @app_commands.describe(amount="The amount of messages that should be deleted.")
     async def purge(self, context: Context, amount: int) -> None:
         """
@@ -278,7 +269,6 @@ class Moderation(commands.Cog, name="moderation"):
     )
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
-    @checks.not_blacklisted()
     @app_commands.describe(user_id="The user ID that should be banned.", reason="The reason why the user should be banned.")
     async def hackban(self, context: Context, user_id: str, *, reason: str = "Not specified") -> None:
         """
