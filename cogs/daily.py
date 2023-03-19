@@ -514,7 +514,5 @@ class Daily(commands.Cog, name="daily", description=""):
             await channel.send(file=file, embed=embed)
 
 # And then we finally add the cog to the bot so that it can load, unload, reload and use it's content.
-
-
 async def setup(bot):
     await bot.add_cog(Daily(bot))
