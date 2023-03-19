@@ -384,16 +384,13 @@ class Daily(commands.Cog, name="daily", description=""):
             "server_id": str(ctx.guild.id)
         })
 
-        embed = discord.Embed(title="以下是您建立的每日任務",
-                              description=f"共有 {len(tasks)} 個 task",
+        embed = discord.Embed(title="以下是您在此伺服器建立的每日任務",
+                              description=f"共有 {len(tasks)} 個任務",
                               color=discord.Color.green())
 
         for task in tasks:
-
-            user = await self.bot.fetch_user(int(task["created_by"]))
-
-            embed.add_field(name=f"{task['name']}: {task['description']}",
-                            value=f"建立者: {user.mention}",
+            embed.add_field(name=f"📜 {task['name']}",
+                            value=f"{task['description']}",
                             inline=False)
         await ctx.send(embed=embed)
 
@@ -433,10 +430,15 @@ class Daily(commands.Cog, name="daily", description=""):
         self.daily_remind.start()
         self.daily_condemn.start()
 
-    @tasks.loop(hours=1)
+    @tasks.loop(minutes=1)
     async def daily_remind(self):
         """Remind user of their todos every day."""
         now = get_current_time()
+
+        # check if n:00
+        if now.minute != 0:
+            return
+
         to_remind_list = subscribe_adapter.get_subscribe({
             "remind_time": int(now.strftime("%H"))
         })
@@ -469,10 +471,15 @@ class Daily(commands.Cog, name="daily", description=""):
 
             await user.send(embed=embed)
 
-    @tasks.loop(hours=1)
+    @tasks.loop(minutes=1)
     async def daily_condemn(self):
         """Remind user of their todos every day."""
         now = get_current_time()
+
+        # check if n:00
+        if now.minute != 0:
+            return
+
         to_condemn_list = subscribe_adapter.get_subscribe({
             "condemn_time": int(now.strftime("%H"))
         })
@@ -514,5 +521,7 @@ class Daily(commands.Cog, name="daily", description=""):
             await channel.send(file=file, embed=embed)
 
 # And then we finally add the cog to the bot so that it can load, unload, reload and use it's content.
+
+
 async def setup(bot):
     await bot.add_cog(Daily(bot))
