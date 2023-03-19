@@ -14,7 +14,7 @@ field_mapping = {
     'task': ['id', 'name', 'description', 'created_at', 'server_id', 'created_by'],
     'history': ['id', 'user_id', 'task_id', 'accumulate', 'consecutive', 'server_id', 'last_check'],
     'user': ['id', 'time_zone'],
-    'subscribe': ['id', 'task_id', 'user_id', 'server_id', 'remind_time', 'condemn_time'],
+    'subscribe': ['id', 'task_id', 'user_id', 'server_id', 'remind_time', 'condemn_time', 'channel_id'],
     'server': ['id'],
 }
 
