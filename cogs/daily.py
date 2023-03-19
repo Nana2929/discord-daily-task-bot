@@ -1,30 +1,20 @@
 # %%
+from collections import defaultdict
 from datetime import datetime, timedelta
+import os
+import random
 from typing import Dict, List
 from discord.ext import commands, tasks
 from discord.ext.commands import Context
 from api import checks
 import discord
 from discord import ui
-from discord import app_commands
-from discord.ext.forms import Form, Validator, ReactionForm, ReactionMenu
 import math
 import api.daily as daily_adapter
 import api.user as user_adapter
 import api.subscribe as subscribe_adapter
 import pytz
-from helpers.utils import get_current_time, is_the_same_date
-
-
-def read_file(fp="./data/mottos.txt"):
-    with open(fp, "r") as f:
-        return f.read().splitlines()
-
-
-def get_reward_word():
-    import random
-    words = read_file()
-    return random.choice(words)
+from helpers.utils import get_current_time, is_the_same_date, get_encourage_words, get_condemn_words
 
 
 class DailyDoneView(ui.View):
@@ -107,8 +97,8 @@ class DailyDoneView(ui.View):
                 else:
                     embed.add_field(
                         name=f"簽到 {task['name']} 失敗", value="請聯絡管理員", inline=False)
-            embed.set_footer(text=get_reward_word())
-            await interaction.response.send_message(embed=embed)
+            embed.set_footer(text=get_encourage_words())
+            await interaction.response.edit_message(view=None, embed=embed)
 
         select_options.callback = callback
         self.add_item(select_options)
@@ -276,6 +266,7 @@ class SubscribeAddModal(ui.Modal):
                 "task_id": task_id,
                 "user_id": interaction.user.id,
                 "server_id": interaction.guild.id,
+                "channel_id": interaction.channel.id
             })
 
             subscribe["remind_time"] = (
@@ -307,6 +298,9 @@ class SubscribeAddModal(ui.Modal):
 class Daily(commands.Cog, name="daily", description=""):
 
     def __init__(self, bot):
+
+        self.encourage_words = get_encourage_words()
+        self.condemn_words = get_condemn_words()
         self.bot = bot
 
     @commands.hybrid_group(
@@ -436,19 +430,88 @@ class Daily(commands.Cog, name="daily", description=""):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        self.remind.start()
+        self.daily_remind.start()
+        self.daily_condemn.start()
 
-    # @tasks.loop(minutes=1)
-    # async def remind(self):
-    #     """Remind user of their todos every day."""
-    #     now = get_current_time()
+    @tasks.loop(hours=1)
+    async def daily_remind(self):
+        """Remind user of their todos every day."""
+        now = get_current_time()
+        to_remind_list = subscribe_adapter.get_subscribe({
+            "remind_time": int(now.strftime("%H"))
+        })
+        user_to_remind_tasks = defaultdict(list)
+        for remind in to_remind_list:
+            user_to_remind_tasks[remind["user_id"]].append(remind["task_id"])
 
-    #     to_remind_list = subscribe_adapter.get_subscribe({
-    #         "remind_time": int(now.strftime("%H"))
-    #     })
-        
-    #     for to_remind in to_remind_list:
+        for user_id, tasks in user_to_remind_tasks.items():
+            done_task_ids = [
+                int(his["task_id"]["id"]) for his in daily_adapter.get_history({
+                    "user_id": user_id,
+                    "last_check": now.strftime("%Y-%m-%d")
+                })]
+            to_remind_tasks = [task for task in tasks if int(task["id"])
+                               not in done_task_ids]
 
+            if len(to_remind_tasks) == 0:
+                continue
+
+            user = await self.bot.fetch_user(int(user_id))
+            embed = discord.Embed(title=f"📢 你今天還有以下任務沒有完成喔，堅持下去!",
+                                  color=discord.Color.blurple())
+
+            embed.set_footer(
+                text=self.encourage_words[random.randint(0, len(self.encourage_words)-1)])
+            for task in to_remind_tasks:
+                embed.add_field(name=f"{task['name']}",
+                                value=f"{task['description']}",
+                                inline=False)
+
+            await user.send(embed=embed)
+
+    @tasks.loop(hours=1)
+    async def daily_condemn(self):
+        """Remind user of their todos every day."""
+        now = get_current_time()
+        to_condemn_list = subscribe_adapter.get_subscribe({
+            "condemn_time": int(now.strftime("%H"))
+        })
+
+        channel_to_condemn_tasks = defaultdict(list)
+
+        for condemn in to_condemn_list:
+            channel_to_condemn_tasks[condemn["channel_id"]].append(
+                condemn)
+
+        for channel_id, tasks in channel_to_condemn_tasks.items():
+
+            task_name_to_user_ids = defaultdict(list)
+
+            for task in tasks:
+                task_name_to_user_ids[task["task_id"]["name"]].append(
+                    task["user_id"])
+
+            if len(task_name_to_user_ids) == 0:
+                continue
+
+            channel = self.bot.get_channel(int(channel_id))
+
+            embed = discord.Embed(title=f"👿 譴責時間到！",
+                                  description=self.condemn_words[random.randint(
+                                      0, len(self.condemn_words) - 1)],
+                                  color=discord.Color.fuchsia())
+
+            img = random.sample(os.listdir("imgs/condemn"), 1)
+            file = discord.File(os.path.join(
+                "imgs/condemn", img[0]), filename="image.png")
+            embed.set_image(url="attachment://image.png")
+
+            for task_name, user_ids in task_name_to_user_ids.items():
+                embed.add_field(name=f"📝 {task_name}",
+                                value=f"{' '.join([f'<@{user_id}>' for user_id in user_ids])}",
+                                inline=False)
+
+            await channel.send(file=file, embed=embed)
 
 # And then we finally add the cog to the bot so that it can load, unload, reload and use it's content.
 
