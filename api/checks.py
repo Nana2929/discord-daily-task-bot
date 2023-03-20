@@ -1,14 +1,17 @@
 from .user import check_user_exists
+from .server import check_server_exists
 from typing import Callable, TypeVar
 from discord.ext import commands
 T = TypeVar("T")
 
-def is_user_registered() -> Callable[[T], T]:
+
+def is_fully_registered() -> Callable[[T], T]:
     """Check if user is registered."""
     async def predicate(context: commands.Context) -> bool:
-        ok = check_user_exists(context.author.id)
+        ok = check_user_exists(context.author.id) and check_server_exists(
+            context.guild.id)
         if not ok:
-            await context.send("您尚未註冊，請先註冊")
+            await context.send("您尚未在此伺服器註冊，請先註冊")
         return ok
     return commands.check(predicate)
 
