@@ -9,18 +9,25 @@ from discord.ext.commands import Context
 from api import checks
 import discord
 from discord import ui
-import math
+
+
+from helpers.utils import get_current_time, is_the_same_date
 import api.daily as daily_adapter
 import api.user as user_adapter
 import api.subscribe as subscribe_adapter
-import pytz
-from helpers.utils import get_current_time, is_the_same_date, get_encourage_words, get_condemn_words
+import api.words as words_adapter
+from dataclasses import dataclass
+@dataclass
+class style:
+    done: str = "完成"
+    condemn: str = "譴責"
+    remind: str = "提醒"
 
 
 class DailyDoneView(ui.View):
 
     def __init__(self, ctx: Context, **kwargs):
-
+        self.done_word_footer = kwargs.pop("done_word")
         super().__init__(**kwargs)
         tasks = daily_adapter.get_task({"server_id": str(ctx.guild.id)})
         task_id_to_task = {task["id"]: task for task in tasks}
@@ -80,7 +87,7 @@ class DailyDoneView(ui.View):
                         continue
 
                     history["accumulate"] += 1
-                    if is_the_same_date(history["last_check"], yesterday()):
+                    if is_the_same_date(history["last_check"], yesterday):
                         history["consecutive"] += 1
                     else:
                         history["consecutive"] = 1
@@ -97,7 +104,7 @@ class DailyDoneView(ui.View):
                 else:
                     embed.add_field(
                         name=f"簽到 {task['name']} 失敗", value="請聯絡管理員", inline=False)
-            embed.set_footer(text=get_encourage_words())
+            embed.set_footer(text=self.done_word_footer)
             await interaction.response.edit_message(view=None, embed=embed)
 
         select_options.callback = callback
@@ -299,8 +306,9 @@ class Daily(commands.Cog, name="daily", description=""):
 
     def __init__(self, bot):
 
-        self.encourage_words = get_encourage_words()
-        self.condemn_words = get_condemn_words()
+        self.remind_words = words_adapter.get_words_by_style(style.remind)
+        self.done_words = words_adapter.get_words_by_style(style.done)
+        self.condemn_words = words_adapter.get_words_by_style(style.condemn)
         self.bot = bot
 
     @commands.hybrid_group(
@@ -400,7 +408,7 @@ class Daily(commands.Cog, name="daily", description=""):
     )
     @checks.is_user_registered()
     async def daily_done(self, ctx: Context):
-        await ctx.send(view=DailyDoneView(ctx=ctx))
+        await ctx.send(view=DailyDoneView(ctx=ctx, done_word = random.choice(self.done_words)))
 
     @daily.command(
         name="subscribe",
@@ -413,6 +421,7 @@ class Daily(commands.Cog, name="daily", description=""):
             await ctx.send("目前沒有任何任務可以訂閱")
         else:
             await ctx.send(view=DailySubscribeView(ctx=ctx))
+
 
     @daily.command(
         name="unsubscribe",
