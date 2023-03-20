@@ -10,11 +10,18 @@ logger = logging.getLogger(__name__)
 api_url = "http://140.116.245.105:9453/items"
 
 field_mapping = {
-    'words': ['content', 'user_id', 'server_id', 'created_at', 'style'],
-    'task': ['id', 'name', 'description', 'created_at', 'server_id', 'created_by'],
-    'history': ['id', 'user_id', 'task_id', 'accumulate', 'consecutive', 'server_id', 'last_check'],
+    'words': ['id', 'content', 'user_id', 'server_id', 'created_at', 'style'],
+    'task':
+    ['id', 'name', 'description', 'created_at', 'server_id', 'created_by'],
+    'history': [
+        'id', 'user_id', 'task_id', 'accumulate', 'consecutive', 'server_id',
+        'last_check'
+    ],
     'user': ['id', 'time_zone'],
-    'subscribe': ['id', 'task_id', 'user_id', 'server_id', 'remind_time', 'condemn_time', 'channel_id'],
+    'subscribe': [
+        'id', 'task_id', 'user_id', 'server_id', 'remind_time', 'condemn_time',
+        'channel_id'
+    ],
     'server': ['id'],
 }
 
