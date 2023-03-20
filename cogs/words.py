@@ -169,7 +169,7 @@ class Words(commands.Cog, name="words", description="❤️ 新增/刪除鼓勵�
             form = ReactionMenu(context, embed_list)
             await form.start()
 
-    @words.command(name="del", description="刪除你創建的一句鼓勵或譴責的話語。")
+    @words.command(name="delete", description="刪除你創建的一句鼓勵或譴責的話語。")
     @checks.is_fully_registered()
     async def delete(self, context: Context):
         user_words = words_adapter.get_words_by_user(context.author.id)
@@ -183,6 +183,8 @@ class Words(commands.Cog, name="words", description="❤️ 新增/刪除鼓勵�
                 uw["content"]) > 20 else uw["content"]
             formatted_label = f'{i}. {content_display}'
             return formatted_label
+
+        print(user_words)
 
         options.extend([
             discord.SelectOption(
