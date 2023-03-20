@@ -3,7 +3,7 @@ try:
     from base import Querier, RequestAdd, RequestDelete, RequestUpdate
 except:
     from .base import Querier, RequestAdd, RequestDelete, RequestUpdate
-
+from typing import Union
 from datetime import datetime
 import pytz
 
@@ -56,10 +56,12 @@ def add_history(user_id: str, task_id: int, server_id: str, last_check: datetime
     return history_adder(**data)
 
 
-def update_history(id: int, accumulate: int, consecutive: int, last_check: datetime, **kwargs):
+def update_history(id: int, accumulate: int, consecutive: int, last_check: Union[datetime, str], **kwargs):
 
     history_updater = RequestUpdate("history")
+    if isinstance(last_check, datetime):
+        last_check = last_check.strftime("%Y-%m-%d")
     return history_updater(id,
                            accumulate=int(accumulate),
                            consecutive=int(consecutive),
-                           last_check=last_check.strftime("%Y-%m-%d")).ok
+                           last_check=last_check).ok
