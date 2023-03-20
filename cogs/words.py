@@ -78,7 +78,7 @@ class Words(commands.Cog, name="words", description="❤️ 新增/刪除鼓勵�
             await context.send(embed=embed)
 
     @words.command(name="add", description="新增一句鼓勵或譴責的話語。")
-    @checks.is_user_registered()
+    @checks.is_fully_registered()
     async def add(self, context: Context):
         view = ui.View()
         str_options = ["提醒", "譴責"]
@@ -126,7 +126,7 @@ class Words(commands.Cog, name="words", description="❤️ 新增/刪除鼓勵�
         return user
 
     @words.command(name="listall", description="列出所有鼓勵或譴責的話語。")
-    @checks.is_user_registered()
+    @checks.is_fully_registered()
     @app_commands.guilds(discord.Object(id=GUILD_ID))
     async def listall(self, context: Context):
         server_words = words_adapter.get_all_words()
@@ -150,7 +150,7 @@ class Words(commands.Cog, name="words", description="❤️ 新增/刪除鼓勵�
             await form.start()
 
     @words.command(name="listmine", description="列出你創建的鼓勵或譴責的話語。")
-    @checks.is_user_registered()
+    @checks.is_fully_registered()
     @app_commands.guilds(discord.Object(id=GUILD_ID))
     async def listmine(self, context: Context):
         server_words = words_adapter.get_all_words()
@@ -170,7 +170,7 @@ class Words(commands.Cog, name="words", description="❤️ 新增/刪除鼓勵�
             await form.start()
 
     @words.command(name="del", description="刪除你創建的一句鼓勵或譴責的話語。")
-    @checks.is_user_registered()
+    @checks.is_fully_registered()
     async def delete(self, context: Context):
         user_words = words_adapter.get_words_by_user(context.author.id)
         if not user_words:
