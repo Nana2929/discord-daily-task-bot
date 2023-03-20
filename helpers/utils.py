@@ -31,13 +31,6 @@ def is_the_same_date(date1: str, date2: str):
     return date1[:10] == date2[:10]
 
 
-def get_encourage_words(fp="data/encourage.txt") -> List[str]:
-    with open(fp, "r") as f:
-        words = f.read().splitlines()
-    return words
 
 
-def get_condemn_words(fp="data/condemn.txt") -> List[str]:
-    with open(fp, "r") as f:
-        words = f.read().splitlines()
-    return words
+
