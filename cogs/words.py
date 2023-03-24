@@ -81,7 +81,7 @@ class Words(commands.Cog, name="words", description="❤️ 新增/刪除鼓勵�
     @checks.is_fully_registered()
     async def add(self, context: Context):
         view = ui.View()
-        str_options = ["提醒", "譴責"]
+        str_options = ["提醒", "譴責", "完成"] 
         select_ui = ui.Select(
             placeholder="選擇欲新增話語類別",
             options=[discord.SelectOption(label=x, value=x) for x in str_options],
