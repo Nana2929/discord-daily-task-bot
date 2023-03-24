@@ -1,0 +1,26 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+default_stages:
+- commit
+exclude:
+    "^$"
+repos: # repos配置是一个存储库映射列表，用来告诉pre-commit从哪里获取钩子的代码。其有三个下层配置，都是必填，如下：
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.2.0
+    hooks:
+    -   id: trailing-whitespace
+    -   id: check-docstring-first
+        exclude: bot.py
+    -   id: end-of-file-fixer
+    -   id: check-yaml
+    -   id: check-added-large-files
+-   repo: https://github.com/google/yapf
+    rev: v0.32.0
+    hooks:
+    -   id: yapf
+        name: yapf
+        language: python
+        entry: yapf
+# stages:
+# (可选)将钩子限制在commit, merge-commit, push, prepare-commit-msg, commit-msg, post-checkout, post-commit, post-merge, post-rewrite, or manual阶段。
+# 这也就是git自身支持的不同阶段的钩子
