@@ -21,6 +21,12 @@ repos: # repos配置是一个存储库映射列表，用来告诉pre-commit从�
         name: yapf
         language: python
         entry: yapf
+-   repo: https://github.com/jorisroovers/gitlint
+    rev: v0.16.0
+    hooks:
+    -   id: gitlint
+# https://stackoverflow.com/questions/74046718/pre-commit-complains-that-stashed-changes-conflicted-with-hook-auto-fixes-desp
+# use .gitlint to customize the gitlint behavior
 # stages:
 # (可选)将钩子限制在commit, merge-commit, push, prepare-commit-msg, commit-msg, post-checkout, post-commit, post-merge, post-rewrite, or manual阶段。
 # 这也就是git自身支持的不同阶段的钩子
