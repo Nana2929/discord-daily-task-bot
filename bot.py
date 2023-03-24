@@ -20,12 +20,13 @@ from discord.ext.commands import Bot, Context
 
 import exceptions
 
-if not os.path.isfile(f"{os.path.realpath(os.path.dirname(__file__))}/config.json"):
+if not os.path.isfile(
+        f"{os.path.realpath(os.path.dirname(__file__))}/config.json"):
     sys.exit("'config.json' not found! Please add it and try again.")
 else:
-    with open(f"{os.path.realpath(os.path.dirname(__file__))}/config.json") as file:
+    with open(f"{os.path.realpath(os.path.dirname(__file__))}/config.json"
+              ) as file:
         config = json.load(file)
-
 """
 Setup bot intents (events restrictions)
 For more information about intents, please go to the following websites:
@@ -60,7 +61,6 @@ intents.presences = True
 """
 
 intents = discord.Intents.all()
-
 """
 Uncomment this if you want to use prefix (normal) commands.
 It is recommended to use slash commands and therefore not use prefix commands.
@@ -69,8 +69,10 @@ If you want to use prefix commands, make sure to also enable the intent below in
 """
 # intents.message_content = True
 
-bot = Bot(command_prefix=commands.when_mentioned_or(
-    config["prefix"]), intents=intents, help_command=None)
+bot = Bot(command_prefix=commands.when_mentioned_or(config["prefix"]),
+          intents=intents,
+          help_command=None)
+
 
 # Setup both of the loggers
 class LoggingFormatter(logging.Formatter):
@@ -111,32 +113,19 @@ logger.setLevel(logging.INFO)
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(LoggingFormatter())
 # File handler
-file_handler = logging.FileHandler(
-    filename="discord.log", encoding="utf-8", mode="w")
+file_handler = logging.FileHandler(filename="discord.log",
+                                   encoding="utf-8",
+                                   mode="w")
 file_handler_formatter = logging.Formatter(
-    "[{asctime}] [{levelname:<8}] {name}: {message}", "%Y-%m-%d %H:%M:%S", style="{")
+    "[{asctime}] [{levelname:<8}] {name}: {message}",
+    "%Y-%m-%d %H:%M:%S",
+    style="{")
 file_handler.setFormatter(file_handler_formatter)
 
 # Add the handlers
 logger.addHandler(console_handler)
 logger.addHandler(file_handler)
 bot.logger = logger
-
-
-import aiosqlite
-async def init_db():
-    # if not set, connect to a transient db
-    async with aiosqlite.connect(f"{os.path.realpath(os.path.dirname(__file__))}/database/database.db") as db:
-        with open(f"{os.path.realpath(os.path.dirname(__file__))}/database/schema.sql") as file:
-            await db.executescript(file.read())
-        await db.commit()
-"""
-Create a bot variable to access the config file in cogs so that you don't need to import it every time.
-
-The config is available using the following code:
-- bot.config # In this file
-- self.bot.config # In cogs
-"""
 bot.config = config
 
 
@@ -190,10 +179,12 @@ async def on_command_completion(context: Context) -> None:
     executed_command = str(split[0])
     if context.guild is not None:
         bot.logger.info(
-            f"Executed {executed_command} command in {context.guild.name} (ID: {context.guild.id}) by {context.author} (ID: {context.author.id})")
+            f"Executed {executed_command} command in {context.guild.name} (ID: {context.guild.id}) by {context.author} (ID: {context.author.id})"
+        )
     else:
         bot.logger.info(
-            f"Executed {executed_command} command by {context.author} (ID: {context.author.id}) in DMs")
+            f"Executed {executed_command} command by {context.author} (ID: {context.author.id}) in DMs"
+        )
 
 
 @bot.event
@@ -209,9 +200,9 @@ async def on_command_error(context: Context, error) -> None:
         hours, minutes = divmod(minutes, 60)
         hours = hours % 24
         embed = discord.Embed(
-            description=f"**Please slow down** - You can use this command again in {f'{round(hours)} hours' if round(hours) > 0 else ''} {f'{round(minutes)} minutes' if round(minutes) > 0 else ''} {f'{round(seconds)} seconds' if round(seconds) > 0 else ''}.",
-            color=0xE02B2B
-        )
+            description=
+            f"**Please slow down** - You can use this command again in {f'{round(hours)} hours' if round(hours) > 0 else ''} {f'{round(minutes)} minutes' if round(minutes) > 0 else ''} {f'{round(seconds)} seconds' if round(seconds) > 0 else ''}.",
+            color=0xE02B2B)
         await context.send(embed=embed)
     elif isinstance(error, exceptions.UserBlacklisted):
         """
@@ -220,43 +211,40 @@ async def on_command_error(context: Context, error) -> None:
         """
         embed = discord.Embed(
             description="You are blacklisted from using the bot!",
-            color=0xE02B2B
-        )
+            color=0xE02B2B)
         await context.send(embed=embed)
         bot.logger.warning(
-            f"{context.author} (ID: {context.author.id}) tried to execute a command in the guild {context.guild.name} (ID: {context.guild.id}), but the user is blacklisted from using the bot.")
+            f"{context.author} (ID: {context.author.id}) tried to execute a command in the guild {context.guild.name} (ID: {context.guild.id}), but the user is blacklisted from using the bot."
+        )
     elif isinstance(error, exceptions.UserNotOwner):
         """
         Same as above, just for the @checks.is_owner() check.
         """
-        embed = discord.Embed(
-            description="You are not the owner of the bot!",
-            color=0xE02B2B
-        )
+        embed = discord.Embed(description="You are not the owner of the bot!",
+                              color=0xE02B2B)
         await context.send(embed=embed)
         bot.logger.warning(
-            f"{context.author} (ID: {context.author.id}) tried to execute an owner only command in the guild {context.guild.name} (ID: {context.guild.id}), but the user is not an owner of the bot.")
+            f"{context.author} (ID: {context.author.id}) tried to execute an owner only command in the guild {context.guild.name} (ID: {context.guild.id}), but the user is not an owner of the bot."
+        )
     elif isinstance(error, commands.MissingPermissions):
         embed = discord.Embed(
-            description="You are missing the permission(s) `" + ", ".join(
-                error.missing_permissions) + "` to execute this command!",
-            color=0xE02B2B
-        )
+            description="You are missing the permission(s) `" +
+            ", ".join(error.missing_permissions) +
+            "` to execute this command!",
+            color=0xE02B2B)
         await context.send(embed=embed)
     elif isinstance(error, commands.BotMissingPermissions):
-        embed = discord.Embed(
-            description="I am missing the permission(s) `" + ", ".join(
-                error.missing_permissions) + "` to fully perform this command!",
-            color=0xE02B2B
-        )
+        embed = discord.Embed(description="I am missing the permission(s) `" +
+                              ", ".join(error.missing_permissions) +
+                              "` to fully perform this command!",
+                              color=0xE02B2B)
         await context.send(embed=embed)
     elif isinstance(error, commands.MissingRequiredArgument):
         embed = discord.Embed(
             title="Error!",
             # We need to capitalize because the command arguments have no capital letter in the code.
             description=str(error).capitalize(),
-            color=0xE02B2B
-        )
+            color=0xE02B2B)
         await context.send(embed=embed)
     else:
         raise error
@@ -266,8 +254,9 @@ async def load_cogs() -> None:
     """
     The code in this function is executed whenever the bot will start.
     """
-    for file in os.listdir(f"{os.path.realpath(os.path.dirname(__file__))}/cogs"):
-        if file.endswith(".py"):
+    for file in os.listdir(
+            f"{os.path.realpath(os.path.dirname(__file__))}/cogs"):
+        if file.endswith(".py") and not file.startswith("__"):
             extension = file[:-3]
             try:
                 await bot.load_extension(f"cogs.{extension}")
