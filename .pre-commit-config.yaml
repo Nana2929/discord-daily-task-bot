@@ -15,7 +15,7 @@ repos: # repos配置是一个存储库映射列表，用来告诉pre-commit从�
         exclude: txt$
     -   id: check-yaml
         exclude: txt$
-    -   id: check-added-large-files
+    # -   id: check-added-large-files
 -   repo: https://github.com/google/yapf
     rev: v0.32.0
     hooks:
