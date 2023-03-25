@@ -23,12 +23,10 @@ In order for our Daily Task Bot to remind you on a daily basis, it has to first 
 ### ii. `!daily` 每日任務管理小幫手
 ```
 >> !daily
-    # 新增刪除與顯示可簽到任務
     - add      # ✅
     - listall  # ✅
     - listmine # ✅
     - delete   # ✅
-    # 簽到與簽到提醒功能
     - done        # ✅
     - listdone   # ✅
     - subscribe   # ✅
@@ -39,17 +37,17 @@ In order for our Daily Task Bot to remind you on a daily basis, it has to first 
 2. `listall`and `listmine`:
     `listall` lists all the tasks in the database; `listmine` lists all the tasks that you've *cretaed* to the database.
 
-<img src="imgs/examples/daily_add2.gif" width="60%" height="60%"/>
+<img src="./imgs/examples/daily_add2.gif" width="60%" height="60%"/>
 
 3. `done` adds a check mark ✅ in the task that you've *done* today. Similar to `!daily` in [leetcode-challenge-bot](https://github.com/CodingSheep1229/leetcode-challenge-bot).`listdone -n` lists all the tasks that you've *done* recently. `-n` is the number of days you want to list. For example, `!daily listdone -3` will list the recent 3 tasks that you've done. Not specifying `-n` will list all the tasks that you've done.
 
-<img src="imgs/examples/daily_done.gif" width="60%" height="60%"/>
+<img src="./imgs/examples/daily_done.gif" width="60%" height="60%"/>
 
 
 4. `subscribe` and `unsubscribe`:
     To subscribe to the daily task reminder for a particular daily task. The bot will send you a reminder at the reminding time given your registered timezone.  To unsubscribe from the daily task reminder for a particular daily task, provided that you've subscribed to it.
 
-<img src="imgs/examples/daily_sub.gif" width="60%" height="60%"/>
+<img src="./imgs/examples/daily_sub.gif" width="60%" height="60%"/>
 
 
 ### iii. `!words` 增加鼓勵/譴責字彙
@@ -62,33 +60,32 @@ In order for our Daily Task Bot to remind you on a daily basis, it has to first 
 ```
 The `!words` command is used to add, delete and list the words that you would like to see when being reminded or condemned by **🤖 Daily Task Bot**. The words are stored in the database and will be randomly selected when being reminded or condemned. The [leetcode-challenge-bot](https://github.com/CodingSheep1229/leetcode-challenge-bot) has similar features but it does not exposed the API to add, delete and list the words.
 
-![](imgs/examples/words.gif =250x)
+<img src="./imgs/examples/words.gif" width="60%" height="60%"/>
 
-
-### iv. `!doggo`
+### iv. `!doggo` 療癒狗狗
 
 `!doggo` command will send a random dog picture to the channel from the API [Dog CEO](https://dog.ceo/dog-api/).
 You can add a `{breed}` command after `!doggo` to get a random dog picture of the breed you specified. For example, `!doggo shiba` will send a random shiba picture. For breed name that has spaces in between, simply `!doggo golden retriever` will do the trick.
 
-<img src="imgs/examples/doggo.png" width="60%" height="60%"/>
+<img src="./imgs/examples/doggo.png" width="60%" height="60%"/>
 
 
 
 ## IV. Implementation Details
 - [⛏ tech spec](https://hackmd.io/rPEiqT5rSDOqIbWgoaPX5A)
 - [🗺 database schema](https://drawsql.app/teams/leetcode-bot/diagrams/db/embed)
-- services:
+- ervices:
     - Database: PostgreSQL; docker image (`postgis/postgis:13-master`)
     - Database Management CMS: Directus; docker image (`directus/directus:latest`)
     - Directus's Cache: Redis; docker image（`redis:6`）
 - Making sure your `port` is not occupied (the ports could be changed in `docker-compose.yaml`); then use `docker-compose up -d` to start the services.
 - After a successful docker compose up, Go to `localhost:{your_port}` to access the Directus CMS, for example: `localhost:8056`.
 
-<img src="imgs/PostgreSQL_db_ER_diagram.png" width="60%" height="60%"/>
+<img src="./imgs/PostgreSQL_db_ER_diagram.png" width="60%" height="60%"/>
 
 ## V.TODO & Future Works
 - [x] `!daily delete` 要檢查該任務是否有其他 subscribers，如果有的話則不可以刪除，並跳出警告訊息。
-- [] `!daily subscribe` 譴責和提醒只在當日該任務尚未完成時才啟動。
+- [ ] `!daily subscribe` 譴責和提醒只在當日該任務尚未完成時才啟動。
 
 ## VI. Thanks
 
