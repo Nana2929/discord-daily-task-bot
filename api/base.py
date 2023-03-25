@@ -4,6 +4,7 @@ import dataclasses
 import requests
 import logging
 from datetime import datetime
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -46,13 +47,16 @@ class Querier(Request):
             map(lambda f: f"{f}", self._fields))
 
         logger.info(
-            f"GET {self._collection} from API: url={self._url} params={self._params}")
+            f"GET {self._collection} from API: url={self._url} params={self._params}"
+        )
 
         response = requests.get(self._url, params=self._params).json()
         if "data" in response:
             return response['data']
         else:
-            return response.get("message", "An unknown error occurred. Please try again later.")
+            return response.get(
+                "message",
+                "An unknown error occurred. Please try again later.")
 
     def drop_field(self, field: str):
         if field in self._fields:
@@ -98,6 +102,8 @@ class RequestUpdate(Request):
 
     def __call__(self, item_id: Any, **kwargs):
         self._url += f"/{item_id}"
-        updated_fields_dict = {k: v for k,
-                               v in kwargs.items() if k in self._fields}
+        updated_fields_dict = {
+            k: v
+            for k, v in kwargs.items() if k in self._fields
+        }
         return requests.patch(self._url, json=updated_fields_dict)

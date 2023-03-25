@@ -10,7 +10,7 @@ from api import checks
 import discord
 from discord import ui
 
-from helpers.utils import get_current_time, is_the_same_date
+from helpers.utils import get_current_time, is_the_same_date, ButtonCheck
 import api.daily as daily_adapter
 import api.user as user_adapter
 import api.subscribe as subscribe_adapter
@@ -38,9 +38,8 @@ class DailyDoneView(ui.View):
                                    max_values=len(tasks))
 
         for task in tasks:
-            select_options.add_option(
-                label=f"📌 {task['name']} {task['description'][:10]}",
-                value=task["id"])
+            select_options.add_option(label=f"📌 {task['name']}",
+                                      value=task["id"])
 
         async def callback(interaction: discord.Interaction):
 
@@ -338,7 +337,9 @@ class SubscribeAddModal(ui.Modal):
                                                        embed=embed)
 
 
-class Daily(commands.Cog, name="daily", description=""):
+class Daily(commands.Cog,
+            name="daily",
+            description="🥰 Your daily task manager"):
 
     def __init__(self, bot):
 
@@ -349,7 +350,7 @@ class Daily(commands.Cog, name="daily", description=""):
 
     @commands.hybrid_group(
         name="daily",
-        description="",
+        description="🥰 Your daily task manager",
     )
     @checks.is_fully_registered()
     async def daily(self, ctx: Context):
@@ -364,7 +365,6 @@ class Daily(commands.Cog, name="daily", description=""):
                 =========================\n
                 `subscribe` - 訂閱，即開啟每日任務提醒功能\n
                 `unsubscribe` - 取消訂閱，即關閉每日任務功能。\n
-                `listsub` - 列出所有自己訂閱的每日任務。\n
                 =========================\n
                 `done` - 簽到一個每日任務。\n
                 `listdone` - 列出你今日簽到的每日任務。\n
@@ -468,20 +468,26 @@ class Daily(commands.Cog, name="daily", description=""):
             his for his in daily_adapter.get_history(
                 {
                     "user_id": str(context.author.id),
-                    "last_check": now.strftime("%Y-%m-%d")
+                    "server_id": str(context.guild.id),
                 })
         ]
-
-        done_tasks = done_tasks[:top_n]
-        embed = discord.Embed(title=f"最近簽到的每日任務",
+        str2iso = lambda s: datetime.fromisoformat(s)
+        done_tasks = sorted(done_tasks,
+                            key=lambda i: str2iso(i['last_check']),
+                            reverse=True)
+        n = min(top_n, len(done_tasks))
+        done_tasks = done_tasks[:n]
+        embed = discord.Embed(title=f"最近簽到的{n}個每日任務",
                               description="",
                               color=discord.Color.green())
 
         for task in done_tasks:
-            name = f"📍{task['task_id']['name']}"
-            message = f" 你已經連續簽到 {task['consecutive']} 日，累計簽到 {task['accumulate']} 日，再接再厲！"
-            embed.add_field(name=name, value=message, inline=False)
-
+            try:
+                name = f"📍{task['task_id']['name']}"
+                message = f" 你已經連續簽到 {task['consecutive']} 日，累計簽到 {task['accumulate']} 日，再接再厲！"
+                embed.add_field(name=name, value=message, inline=False)
+            except Exception as e:
+                print(e)
         await context.send(embed=embed)
 
     @daily.command(
@@ -581,10 +587,10 @@ class Daily(commands.Cog, name="daily", description=""):
                     len(self.condemn_words) - 1)],
                 color=discord.Color.fuchsia())
 
-            img = random.sample(os.listdir("imgs/condemn"), 1)
-            file = discord.File(os.path.join("imgs/condemn", img[0]),
-                                filename="image.png")
-            embed.set_image(url="attachment://image.png")
+            # img = random.sample(os.listdir("imgs/condemn"), 1)
+            # file = discord.File(os.path.join("imgs/condemn", img[0]),
+            #                     filename="image.png")
+            # embed.set_image(url="attachment://image.png")
 
             for task_name, user_ids in task_name_to_user_ids.items():
                 embed.add_field(
@@ -593,10 +599,70 @@ class Daily(commands.Cog, name="daily", description=""):
                     f"{' '.join([f'<@{user_id}>' for user_id in user_ids])}",
                     inline=False)
 
-            await channel.send(file=file, embed=embed)
+            await channel.send(embed=embed)
 
 
 # And then we finally add the cog to the bot so that it can load, unload, reload and use it's content.
+
+    @daily.command(name="delete", description="刪除每日任務")
+    async def daily_delete(self, context: Context):
+        user_created_tasks = daily_adapter.get_task(
+            {'created_by': context.author.id})
+        subscribed_tasks = subscribe_adapter.get_subscribe(
+            {"user_id": context.author.id})
+        print(user_created_tasks)
+        print(subscribed_tasks)
+
+        intersect = [
+            task for task in user_created_tasks if task not in subscribed_tasks
+        ]
+
+        if len(user_created_tasks) == 0:
+            await context.send("你沒有創建任何每日任務")
+            return
+        if len(intersect) == 0:
+            await context.send("你創建的每日任務正被訂閱中，請取消所有訂閱後再刪除。")
+            return
+        options = [discord.SelectOption(label="取消", value="cancel")]
+        options.extend([
+            discord.SelectOption(label=task["name"], value=task["id"])
+            for task in intersect
+        ])
+        view = ui.View()
+        select_ui = ui.Select(placeholder="請選擇要刪除的每日任務",
+                              options=options,
+                              min_values=1,
+                              max_values=max(len(options), 1))
+
+        async def callback(interaction: discord.Interaction):
+
+            task_ids_to_delete = select_ui.values
+            if "cancel" in task_ids_to_delete:
+                await interaction.message.edit(content="取消刪除", view=None)
+                return
+
+            double_check_ui = ButtonCheck()
+
+            await interaction.response.edit_message(content="確認刪除？",
+                                                    view=double_check_ui)
+            await double_check_ui.wait()
+
+            if double_check_ui.value == "yes":
+                daily_adapter.delete_task_by_ids(task_ids_to_delete)
+                await interaction.message.edit(content="刪除成功！",
+                                               view=None,
+                                               embed=None)
+            elif double_check_ui.value == "no":
+                await interaction.message.edit(content="取消刪除",
+                                               view=None,
+                                               embed=None)
+
+            double_check_ui.stop()
+
+        select_ui.callback = callback
+        view.add_item(select_ui)
+
+        await context.send(view=view, ephemeral=True)
 
 
 async def setup(bot):

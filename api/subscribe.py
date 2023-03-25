@@ -5,7 +5,8 @@ except:
     from base import Querier, RequestAdd, RequestDelete, RequestUpdate
 
 
-def add_subscribe(task_id: int, user_id: str, server_id: str, remind_time: int, condemn_time: int, channel_id: str, **kwargs):
+def add_subscribe(task_id: int, user_id: str, server_id: str, remind_time: int,
+                  condemn_time: int, channel_id: str, **kwargs):
 
     subscribe_adder = RequestAdd("subscribe")
 
@@ -23,9 +24,9 @@ def get_subscribe(filter_rules, **kwargs):
 
     subscribe_querier = Querier("subscribe")
 
-    subscribe_querier.fields(
-        "fields", "task_id.name,task_id.id,task_id.description")
-
+    subscribe_querier.fields("fields",
+                             "task_id.name,task_id.id,task_id.description")
+    # http://140.116.245.105:9453/items/subscribe?filter[user_id][_eq]=918353320068915210&fields[]=task_id, task_id.id, task_id.name
     for k, v in filter_rules.items():
         subscribe_querier.filter_by(k, "eq", v)
 
@@ -35,12 +36,10 @@ def get_subscribe(filter_rules, **kwargs):
 def update_subscribe(id, remind_time, condemn_time, channel_id: str, **kwargs):
 
     subscribe_updater = RequestUpdate("subscribe")
-    return subscribe_updater(
-        item_id=id,
-        remind_time=remind_time,
-        condemn_time=condemn_time,
-        channel_id=channel_id
-    ).ok
+    return subscribe_updater(item_id=id,
+                             remind_time=remind_time,
+                             condemn_time=condemn_time,
+                             channel_id=channel_id).ok
 
 
 def delete_subscribe(id: int, **kwargs):

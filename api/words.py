@@ -16,20 +16,23 @@ from api.base import Querier, RequestAdd, RequestDelete, RequestUpdate
 # https://github.com/yiting-tom/TSMC-careerhack-2023-3rd-place-solution/blob/main/adapters/share.py
 
 
-def get_words_by_user(user_id:str):
+def get_words_by_user(user_id: str):
     words_querier = Querier("words")
     user_words = words_querier.filter_by("user_id", "eq", user_id).query()
     return user_words
+
 
 def delete_words_by_id(item_id=int):
     words_deleter = RequestDelete("words")
     words_deleter(item_id=item_id)
 
+
 def delete_word_by_ids(word_ids: List[int]):
     for item_id in word_ids:
         delete_words_by_id(item_id)
 
-def get_words_by_style(style:str):
+
+def get_words_by_style(style: str):
     words_querier = Querier("words")
     style_words = words_querier.filter_by("style", "eq", style).query()
     style_words = [word['content'] for word in style_words]
@@ -46,12 +49,14 @@ def get_all_words():
             filtered_words.append(word)
     return filtered_words
 
+
 def add_one_word(content, user_id, style, server_id, created_at):
     words_adder = RequestAdd("words")
     words_adder(content=content,
                 user_id=str(user_id),
-                style = style,
+                style=style,
                 server_id=server_id,
                 created_at=created_at)
+
 
 # %%
