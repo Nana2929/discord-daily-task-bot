@@ -35,7 +35,7 @@ In order for our Daily Task Bot to remind you on a daily basis, it has to first 
 1. `add` and `delete`:
     To add a daily task, you can use `!daily add` to add the task to the database. The bot will then ask you to enter the task name, the task description and the relevant url. You can only `!daily delete` the tasks you created.
 2. `listall`and `listmine`:
-    `listall` lists all the tasks in the database; `listmine` lists all the tasks that you've *cretaed* to the database.
+    `listall` lists all the tasks in the database; `listmine` lists all the tasks that you've *created*. 
 
 <img src="./imgs/examples/daily_add2.gif" width="60%" height="60%"/>
 
