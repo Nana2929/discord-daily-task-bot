@@ -257,12 +257,12 @@ class SubscribeAddModal(ui.Modal):
         super().__init__(title=title)
 
         self.add_item(
-            ui.TextInput(label="譴責時間（0~23）",
+            ui.TextInput(label="提醒時間（0~23）",
                          required=True,
                          min_length=1,
                          max_length=2))
         self.add_item(
-            ui.TextInput(label="提醒時間（0~23）",
+            ui.TextInput(label="譴責時間（0~23），勿和提醒時間相同",
                          min_length=1,
                          required=True,
                          max_length=2))
@@ -529,20 +529,23 @@ class Daily(commands.Cog,
                         "last_check": now.strftime("%Y-%m-%d")
                     })
             ]
+            # exclude done tasks
             to_remind_tasks = [
                 task for task in tasks if int(task["id"]) not in done_task_ids
             ]
 
             if len(to_remind_tasks) == 0:
+                print(f"no task to remind for {user_id} at {now}.")
                 continue
 
             user = await self.bot.fetch_user(int(user_id))
             embed = discord.Embed(title=f"📢 你今天還有以下任務沒有完成喔，堅持下去!",
                                   color=discord.Color.blurple())
 
-            embed.set_footer(text=self.encourage_words[random.randint(
+            embed.set_footer(text=self.remind_words[random.randint(
                 0,
-                len(self.encourage_words) - 1)])
+                len(self.remind_words) - 1)])
+            # 2023.04.08 bugfix: naming issue of lists
             for task in to_remind_tasks:
                 embed.add_field(name=f"{task['name']}",
                                 value=f"{task['description']}",
@@ -568,10 +571,21 @@ class Daily(commands.Cog,
             channel_to_condemn_tasks[condemn["channel_id"]].append(condemn)
 
         for channel_id, tasks in channel_to_condemn_tasks.items():
-
             task_name_to_user_ids = defaultdict(list)
 
             for task in tasks:
+                # get user done task
+                user_done_task_names = [
+                    hist["task_id"]["name"]
+                    for hist in daily_adapter.get_history(
+                        {
+                            "user_id": task["user_id"],
+                            "last_check": now.strftime("%Y-%m-%d")
+                        })
+                ]
+                # 2023.04.08 bugfix: condemning done tasks bug
+                if task["task_id"]["name"] in user_done_task_names:
+                    continue
                 task_name_to_user_ids[task["task_id"]["name"]].append(
                     task["user_id"])
 
