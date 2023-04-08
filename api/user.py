@@ -31,3 +31,9 @@ def update_user(user_id: str, time_zone: str):
     user_updater = RequestUpdate("user")
     msg = user_updater(item_id=user_id, time_zone=time_zone)
     return msg.json()
+
+
+def get_all_users():
+    user_querier = Querier("user")
+    result = user_querier.query()
+    return result

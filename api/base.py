@@ -8,7 +8,8 @@ from datetime import datetime
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-api_url = "http://140.116.245.105:9453/items"
+# api_url = "http://140.116.245.105:9453/items"
+api_url = "http://0.0.0.0:8056/items"
 
 field_mapping = {
     'words': ['id', 'content', 'user_id', 'server_id', 'created_at', 'style'],
