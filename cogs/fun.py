@@ -14,35 +14,38 @@ from discord.ext import commands
 from discord.ext.commands import Context
 
 
-
 class Choice(discord.ui.View):
+
     def __init__(self):
         super().__init__()
         self.value = None
 
     @discord.ui.button(label="Heads", style=discord.ButtonStyle.blurple)
-    async def confirm(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def confirm(self, button: discord.ui.Button,
+                      interaction: discord.Interaction):
         self.value = "heads"
         self.stop()
 
     @discord.ui.button(label="Tails", style=discord.ButtonStyle.blurple)
-    async def cancel(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def cancel(self, button: discord.ui.Button,
+                     interaction: discord.Interaction):
         self.value = "tails"
         self.stop()
 
 
 class RockPaperScissors(discord.ui.Select):
+
     def __init__(self):
         options = [
-            discord.SelectOption(
-                label="Scissors", description="You choose scissors.", emoji="✂"
-            ),
-            discord.SelectOption(
-                label="Rock", description="You choose rock.", emoji="🪨"
-            ),
-            discord.SelectOption(
-                label="paper", description="You choose paper.", emoji="🧻"
-            ),
+            discord.SelectOption(label="Scissors",
+                                 description="You choose scissors.",
+                                 emoji="✂"),
+            discord.SelectOption(label="Rock",
+                                 description="You choose rock.",
+                                 emoji="🪨"),
+            discord.SelectOption(label="paper",
+                                 description="You choose paper.",
+                                 emoji="🧻"),
         ]
         super().__init__(
             placeholder="Choose...",
@@ -64,10 +67,8 @@ class RockPaperScissors(discord.ui.Select):
         bot_choice_index = choices[bot_choice]
 
         result_embed = discord.Embed(color=0x9C84EF)
-        result_embed.set_author(
-            name=interaction.user.name,
-            icon_url=interaction.user.avatar.url
-        )
+        result_embed.set_author(name=interaction.user.name,
+                                icon_url=interaction.user.avatar.url)
 
         if user_choice_index == bot_choice_index:
             result_embed.description = f"**That's a draw!**\nYou've chosen {user_choice} and I've chosen {bot_choice}."
@@ -84,23 +85,25 @@ class RockPaperScissors(discord.ui.Select):
         else:
             result_embed.description = f"**I won!**\nYou've chosen {user_choice} and I've chosen {bot_choice}."
             result_embed.colour = 0xE02B2B
-        await interaction.response.edit_message(embed=result_embed, content=None, view=None)
+        await interaction.response.edit_message(embed=result_embed,
+                                                content=None,
+                                                view=None)
 
 
 class RockPaperScissorsView(discord.ui.View):
+
     def __init__(self):
         super().__init__()
         self.add_item(RockPaperScissors())
 
 
 class Fun(commands.Cog, name="fun"):
+
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.hybrid_command(
-        name="randomfact",
-        description="Get a random fact."
-    )
+    @commands.hybrid_command(name="randomfact",
+                             description="Get a random fact.")
     async def randomfact(self, context: Context) -> None:
         """
         Get a random fact.
@@ -109,25 +112,24 @@ class Fun(commands.Cog, name="fun"):
         """
         # This will prevent your bot from stopping everything when doing a web request - see: https://discordpy.readthedocs.io/en/stable/faq.html#how-do-i-make-a-web-request
         async with aiohttp.ClientSession() as session:
-            async with session.get("https://uselessfacts.jsph.pl/random.json?language=en") as request:
+            async with session.get(
+                    "https://uselessfacts.jsph.pl/random.json?language=en"
+            ) as request:
                 if request.status == 200:
                     data = await request.json()
-                    embed = discord.Embed(
-                        description=data["text"],
-                        color=0xD75BF4
-                    )
+                    embed = discord.Embed(description=data["text"],
+                                          color=0xD75BF4)
                 else:
                     embed = discord.Embed(
                         title="Error!",
-                        description="There is something wrong with the API, please try again later",
-                        color=0xE02B2B
-                    )
+                        description=
+                        "There is something wrong with the API, please try again later",
+                        color=0xE02B2B)
                 await context.send(embed=embed)
 
     @commands.hybrid_command(
         name="coinflip",
-        description="Make a coin flip, but give your bet before."
-    )
+        description="Make a coin flip, but give your bet before.")
     async def coinflip(self, context: Context) -> None:
         """
         Make a coin flip, but give your bet before.
@@ -135,29 +137,25 @@ class Fun(commands.Cog, name="fun"):
         :param context: The hybrid command context.
         """
         buttons = Choice()
-        embed = discord.Embed(
-            description="What is your bet?",
-            color=0x9C84EF
-        )
+        embed = discord.Embed(description="What is your bet?", color=0x9C84EF)
         message = await context.send(embed=embed, view=buttons)
         await buttons.wait()  # We wait for the user to click a button.
         result = random.choice(["heads", "tails"])
         if buttons.value == result:
             embed = discord.Embed(
-                description=f"Correct! You guessed `{buttons.value}` and I flipped the coin to `{result}`.",
-                color=0x9C84EF
-            )
+                description=
+                f"Correct! You guessed `{buttons.value}` and I flipped the coin to `{result}`.",
+                color=0x9C84EF)
         else:
             embed = discord.Embed(
-                description=f"Woops! You guessed `{buttons.value}` and I flipped the coin to `{result}`, better luck next time!",
-                color=0xE02B2B
-            )
+                description=
+                f"Woops! You guessed `{buttons.value}` and I flipped the coin to `{result}`, better luck next time!",
+                color=0xE02B2B)
         await message.edit(embed=embed, view=None, content=None)
 
     @commands.hybrid_command(
         name="rps",
-        description="Play the rock paper scissors game against the bot."
-    )
+        description="Play the rock paper scissors game against the bot.")
     async def rock_paper_scissors(self, context: Context) -> None:
         """
         Play the rock paper scissors game against the bot.
@@ -167,12 +165,8 @@ class Fun(commands.Cog, name="fun"):
         view = RockPaperScissorsView()
         await context.send("Please make your choice", view=view)
 
-
-
     @commands.hybrid_command(
-        name="doggo",
-        description="See a cute dog when you are tired."
-    )
+        name="doggo", description="🐶 Enjoy a cute dog when you are tired.")
     async def see_doggo(self, context: Context, *, breed: str = None) -> None:
         """
         See a doggo.
@@ -188,7 +182,7 @@ class Fun(commands.Cog, name="fun"):
             breed = breed.lower()
             breed_arr = breed.split()
             breed_arr = breed_arr[::-1]
-            url = f"https://dog.ceo/api/breed/{'/'.join(breed_arr)}/images/random" # https://dog.ceo/api/breed/cattledog/australian/images/random
+            url = f"https://dog.ceo/api/breed/{'/'.join(breed_arr)}/images/random"  # https://dog.ceo/api/breed/cattledog/australian/images/random
             print(url)
 
         async with aiohttp.ClientSession() as session:
@@ -197,25 +191,23 @@ class Fun(commands.Cog, name="fun"):
                     data = await request.json()
                     if 'message' in data:
                         embed = discord.Embed(
-                            title= f"Otsukaresama. Here is the requested {breed} doggo for you!",
-                            color=0x9C84EF
-                        )
+                            title=
+                            f"Otsukaresama. Here is the requested {breed} doggo for you!",
+                            color=0x9C84EF)
                         embed.set_image(url=data["message"])
                     else:
                         embed = discord.Embed(
                             title="No such breed!",
-                            description="Your doggo can't come to the phone rn, please try another",
-                            color=0xE02B2B
-                        )
+                            description=
+                            "Your doggo can't come to the phone rn, please try another",
+                            color=0xE02B2B)
                 else:
                     embed = discord.Embed(
                         title="Error!",
-                        description="Your doggo can't come to the phone rn due to the API breakdown, please try again later",
-                        color=0xE02B2B
-                    )
+                        description=
+                        "Your doggo can't come to the phone rn due to the API breakdown, please try again later",
+                        color=0xE02B2B)
                 await context.send(embed=embed)
-
-
 
 
 async def setup(bot):

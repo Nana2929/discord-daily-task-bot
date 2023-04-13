@@ -36,14 +36,12 @@ class UserAddModal(ui.Modal, title="modal to add the user"):
                               description=f"\n \
                               時區：UTC {formatted_timezone}",
                               color=discord.Color.green())
-        
+
         user_exists = user_adapter.check_user_exists(interaction.user.id)
 
         if user_exists:
-            msg = user_adapter.update_user(
-                user_id=str(interaction.user.id),
-                time_zone=converted_timezone
-            )
+            msg = user_adapter.update_user(user_id=str(interaction.user.id),
+                                           time_zone=converted_timezone)
             content = f"你的註冊時區已經變更為 UTC {converted_timezone}。"
         else:
             content = None
@@ -55,7 +53,8 @@ class UserAddModal(ui.Modal, title="modal to add the user"):
             content = f"註冊或修改失敗，請稍後再試。錯誤訊息：{get_error(msg)}"
 
         if not server_adapter.check_server_exists(interaction.guild.id):
-            if not server_adapter.add_server(server_id=str(interaction.guild.id)):
+            if not server_adapter.add_server(
+                    server_id=str(interaction.guild.id)):
                 content = f"\n❗錯誤: 伺服器註冊失敗，請聯絡管理員"
 
         await interaction.response.edit_message(content=content,

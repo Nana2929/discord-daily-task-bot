@@ -2,10 +2,14 @@
 __pycache__/
 *.py[cod]
 *$py.class
+# others
+dcbot
 
+# ddocker database
+data/database
 # C extensions
 *.so
-# config 
+# config
 config.json
 # Distribution / packaging
 .Python
