@@ -94,7 +94,10 @@ class DailyDoneView(ui.View):
                         history["consecutive"] += 1
                     else:
                         history["consecutive"] = 1
+                    # print('!!', history)
+                    history["last_check"] = now
                     ok = daily_adapter.update_history(**history)
+
                 else:
                     ok = daily_adapter.add_history(**history)
 
@@ -198,23 +201,23 @@ class DailyUnsubscribeView(ui.View):
     def __init__(self, ctx: Context) -> None:
         super().__init__()
 
-        subscribes = subscribe_adapter.get_subscribe({
+        self.subscribes = subscribe_adapter.get_subscribe({
             "user_id":
             str(ctx.author.id),
             "server_id":
             str(ctx.guild.id)
         })
 
-        subscribe_id_to_subscribe = {sub["id"]: sub for sub in subscribes}
-
-        if len(subscribes) == 0:
+        subscribe_id_to_subscribe = {sub["id"]: sub for sub in self.subscribes}
+        # print(self.subscribes)
+        if len(self.subscribes) == 0:
             return
 
         options = ui.Select(placeholder="請選擇要取消訂閱的每日任務",
                             min_values=1,
-                            max_values=len(subscribes))
+                            max_values=len(self.subscribes))
 
-        for sub in subscribes:
+        for sub in self.subscribes:
             options.add_option(
                 label=
                 f"📌 {sub['task_id']['name']} {sub['task_id']['description'][:10]}",
@@ -498,8 +501,10 @@ class Daily(commands.Cog,
     async def daily_unsubscribe(self, ctx: Context):
 
         view = DailyUnsubscribeView(ctx=ctx)
-
-        await ctx.send(view=view)
+        if len(view.subscribes) == 0:
+            await ctx.send("目前沒有任何任務可以取消訂閱")
+        else:
+            await ctx.send(view=view)
 
     @commands.Cog.listener()
     async def on_ready(self):
