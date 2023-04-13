@@ -115,7 +115,7 @@ console_handler.setFormatter(LoggingFormatter())
 # File handler
 file_handler = logging.FileHandler(filename="discord.log",
                                    encoding="utf-8",
-                                   mode="w")
+                                   mode="a")
 file_handler_formatter = logging.Formatter(
     "[{asctime}] [{levelname:<8}] {name}: {message}",
     "%Y-%m-%d %H:%M:%S",
@@ -151,7 +151,7 @@ async def status_task() -> None:
     """
     Setup the game status task of the bot.
     """
-    statuses = ["with you!", "with Krypton!", "with humans!"]
+    statuses = ["with kittens", "with humans"]
     await bot.change_presence(activity=discord.Game(random.choice(statuses)))
 
 
