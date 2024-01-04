@@ -59,6 +59,22 @@ def add_history(user_id: str, task_id: int, server_id: str,
     return history_adder(**data)
 
 
+def clean_history(user_id: str, server_id: str):
+    user_history = get_history({"user_id": user_id, "server_id": server_id})
+    ghost_tasks = []
+    for history in user_history:
+        if history["task_id"] is None:
+            ghost_tasks.append(history["id"])
+    if ghost_tasks:
+        for ghost_task in ghost_tasks:
+            delete_history_by_id(ghost_task)
+
+
+def delete_history_by_id(item_id):
+    history_deleter = RequestDelete("history")
+    history_deleter(item_id=item_id)
+
+
 def update_history(id: int, accumulate: int, consecutive: int,
                    last_check: Union[datetime, str], **kwargs):
 

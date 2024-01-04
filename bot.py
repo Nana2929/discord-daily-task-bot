@@ -263,8 +263,13 @@ async def load_cogs() -> None:
                 bot.logger.info(f"Loaded extension '{extension}'")
             except Exception as e:
                 exception = f"{type(e).__name__}: {e}"
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                 bot.logger.error(
-                    f"Failed to load extension {extension}\n{exception}")
+                    f"Failed to load extension {extension}\n{exception}\n{exc_type}, {fname}, {exc_tb.tb_lineno}"
+                )
+                # bot.logger.error(
+                #     f"Failed to load extension {extension}\n{exception}")
 
 
 asyncio.run(load_cogs())

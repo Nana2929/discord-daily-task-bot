@@ -2,7 +2,7 @@
 version: '3'
 services:
   database:
-    container_name: database
+    container_name: database_1
     image: postgis/postgis:13-master
     ports:
       - 5432:5432
@@ -10,17 +10,17 @@ services:
       - ./data/database:/var/lib/postgresql/data
       # - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql # setting up a database
     networks:
-      - directus
+      - directus_1
     env_file: ./myenv.env
 
   cache:
-    container_name: cache
+    container_name: cache_1
     image: redis:6
     networks:
-      - directus
+      - directus_1
 
   directus:
-    container_name: directus
+    container_name: directus_1
     image: directus/directus:latest
     ports:
       - 8056:8056
@@ -34,7 +34,7 @@ services:
       # If you want to load extensions from the host
       - ./extensions:/directus/extensions
     networks:
-      - directus
+      - directus_1
     depends_on:
       - cache
       - database
@@ -43,4 +43,4 @@ services:
       # (see https://docs.directus.io/self-hosted/config-options#general)
 
 networks:
-  directus:
+  directus_1:
