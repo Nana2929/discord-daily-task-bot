@@ -1,3 +1,8 @@
+"""
+RESTful API wrapper
+Directus also provides GraphQL API, see its documentation or the below `Learn Directus` link:
+https://learndirectus.com/graphql-vs-rest-api/#article_query
+"""
 from typing import Any, List, Optional, Union
 import os
 import dataclasses

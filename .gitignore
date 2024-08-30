@@ -150,3 +150,4 @@ cython_debug/
 
 # Log file
 discord.log
+myenv.env

@@ -1,17 +1,21 @@
 # %%
-from collections import defaultdict
-from datetime import datetime
 import random
-from discord.ext import commands, tasks
-from discord.ext.commands import Context
-from api import checks
+from collections import defaultdict
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Dict
+
 import discord
 from discord import ui
-from helpers.utils import get_current_time, ButtonCheck
+from discord.ext import commands, tasks
+from discord.ext.commands import Context
+
 import api.daily as daily_adapter
 import api.subscribe as subscribe_adapter
+import api.user as user_adapter
 import api.words as words_adapter
-from dataclasses import dataclass
+from api import checks
+from helpers.utils import ButtonCheck, get_current_time, is_the_same_date
 from ui.modal import DailyAddModal
 from ui.view import DailyDoneView, DailySubscribeView, DailyUnsubscribeView
 
@@ -68,23 +72,27 @@ class DailyDoneView(ui.View):
                 ok = False
                 # if history exists, history will be updated
                 history = task_id_to_history.get(
-                    task_id, {
+                    task_id,
+                    {
                         "user_id": str(ctx.author.id),
                         "task_id": str(task_id),
                         "server_id": str(ctx.guild.id),
                         "last_check": now,
                         "accumulate": 1,
-                        "consecutive": 1
-                    })
+                        "consecutive": 1,
+                    },
+                )
                 if "id" in history.keys():
 
                     if is_the_same_date(history["last_check"], today):
-                        embed.add_field(name=f"您今天已經簽到過 {task['name']} 了",
-                                        value=f"""
+                        embed.add_field(
+                            name=f"您今天已經簽到過 {task['name']} 了",
+                            value=f"""
                             📝 累計簽到 {history['accumulate']} 天
                             📝 連續簽到 {history['consecutive']} 天
                             """,
-                                        inline=False)
+                            inline=False,
+                        )
                         continue
 
                     history["accumulate"] += 1
@@ -100,15 +108,19 @@ class DailyDoneView(ui.View):
                     ok = daily_adapter.add_history(**history)
 
                 if ok:
-                    embed.add_field(name=f"簽到 {task['name']} 成功",
-                                    value=f"""
+                    embed.add_field(
+                        name=f"簽到 {task['name']} 成功",
+                        value=f"""
                         📝 累計簽到 {history['accumulate']} 天
                         📝 連續簽到 {history['consecutive']} 天""",
-                                    inline=False)  # set footer
+                        inline=False,
+                    )  # set footer
                 else:
-                    embed.add_field(name=f"簽到 {task['name']} 失敗",
-                                    value="請聯絡管理員",
-                                    inline=False)
+                    embed.add_field(
+                        name=f"簽到 {task['name']} 失敗",
+                        value="請聯絡管理員",
+                        inline=False,
+                    )
             embed.set_footer(text=self.done_word_footer)
             await interaction.response.edit_message(view=None, embed=embed)
 
@@ -125,10 +137,12 @@ class DailyAddModal(ui.Modal):
         self.add_item(ui.TextInput(label="Name", required=True,
                                    max_length=127))
         self.add_item(
-            ui.TextInput(label="Description",
-                         required=False,
-                         style=discord.TextStyle.paragraph,
-                         max_length=255))
+            ui.TextInput(
+                label="Description",
+                required=False,
+                style=discord.TextStyle.paragraph,
+                max_length=255,
+            ))
 
     async def on_submit(self, interaction: discord.Interaction):
 
@@ -139,14 +153,17 @@ class DailyAddModal(ui.Modal):
 
         print(name, description, user_id, server_id)
 
-        if daily_adapter.add_task(user_id=str(user_id),
-                                  server_id=str(server_id),
-                                  name=str(name),
-                                  description=str(description)):
+        if daily_adapter.add_task(
+                user_id=str(user_id),
+                server_id=str(server_id),
+                name=str(name),
+                description=str(description),
+        ):
             embed = discord.Embed(
                 title="新增 daily 成功",
                 description=f"Name: {name}\nDescription: {description}",
-                color=discord.Color.green())
+                color=discord.Color.green(),
+            )
             await interaction.response.edit_message(content=None,
                                                     view=None,
                                                     embed=embed)
@@ -168,9 +185,11 @@ class DailySubscribeView(ui.View):
         user_info = user_adapter.get_user(user_id=ctx.author.id)
 
         task_id_to_task = {task["id"]: task for task in self.tasks}
-        select_options = ui.Select(placeholder="請選擇要訂閱的每日任務",
-                                   min_values=1,
-                                   max_values=len(self.tasks))
+        select_options = ui.Select(
+            placeholder="請選擇要訂閱的每日任務",
+            min_values=1,
+            max_values=len(self.tasks),
+        )
 
         for task in self.tasks:
             select_options.add_option(
@@ -185,8 +204,10 @@ class DailySubscribeView(ui.View):
                 for task_id in selected_task_ids
             }
 
-            modal = SubscribeAddModal(selected_task_infos=selected_task_infos,
-                                      user_time_zone=user_info["time_zone"])
+            modal = SubscribeAddModal(
+                selected_task_infos=selected_task_infos,
+                user_time_zone=user_info["time_zone"],
+            )
             await interaction.response.send_modal(modal)
 
         select_options.callback = callback
@@ -211,15 +232,18 @@ class DailyUnsubscribeView(ui.View):
         if len(self.subscribes) == 0:
             return
 
-        options = ui.Select(placeholder="請選擇要取消訂閱的每日任務",
-                            min_values=1,
-                            max_values=len(self.subscribes))
+        options = ui.Select(
+            placeholder="請選擇要取消訂閱的每日任務",
+            min_values=1,
+            max_values=len(self.subscribes),
+        )
 
         for sub in self.subscribes:
             options.add_option(
                 label=
                 f"📌 {sub['task_id']['name']} {sub['task_id']['description'][:10]}",
-                value=sub["id"])
+                value=sub["id"],
+            )
 
         async def callback(interaction: discord.Interaction):
 
@@ -232,13 +256,15 @@ class DailyUnsubscribeView(ui.View):
                         name=
                         f"🔕 取消訂閱 {subscribe_id_to_subscribe[int(value)]['task_id']['name']} 成功",
                         value="",
-                        inline=False)
+                        inline=False,
+                    )
                 else:
                     embed.add_field(
                         name=
                         f"🔕 取消訂閱 {subscribe_id_to_subscribe[int(value)]['task_id']['name']} 失敗",
                         value="請聯絡管理員",
-                        inline=False)
+                        inline=False,
+                    )
 
             await interaction.response.edit_message(content=None,
                                                     view=None,
@@ -250,11 +276,13 @@ class DailyUnsubscribeView(ui.View):
 
 class SubscribeAddModal(ui.Modal):
 
-    def __init__(self,
-                 selected_task_infos: Dict[int, Dict],
-                 user_time_zone: int,
-                 title="設定譴責及提醒時間 📆",
-                 **kwargs):
+    def __init__(
+        self,
+        selected_task_infos: Dict[int, Dict],
+        user_time_zone: int,
+        title="設定譴責及提醒時間 📆",
+        **kwargs,
+    ):
         super().__init__(title=title)
 
         self.add_item(
@@ -263,10 +291,12 @@ class SubscribeAddModal(ui.Modal):
                          min_length=1,
                          max_length=2))
         self.add_item(
-            ui.TextInput(label="譴責時間（0~23），勿和提醒時間相同",
-                         min_length=1,
-                         required=True,
-                         max_length=2))
+            ui.TextInput(
+                label="譴責時間（0~23），勿和提醒時間相同",
+                min_length=1,
+                required=True,
+                max_length=2,
+            ))
         self.user_time_zone = user_time_zone
         self.selected_task_infos = selected_task_infos
 
@@ -288,7 +318,7 @@ class SubscribeAddModal(ui.Modal):
             return
 
         user_subscribes = {
-            subscribe["task_id"]['id']: subscribe
+            subscribe["task_id"]["id"]: subscribe
             for subscribe in subscribe_adapter.get_subscribe(
                 {
                     "user_id": interaction.user.id,
@@ -298,17 +328,20 @@ class SubscribeAddModal(ui.Modal):
 
         embed = discord.Embed(
             title=f"提醒時間: {remind_time}點\n譴責時間: {condemn_time}點",
-            color=discord.Color.yellow())
+            color=discord.Color.yellow(),
+        )
 
         for task_id in self.selected_task_infos.keys():
 
             subscribe = user_subscribes.get(
-                task_id, {
+                task_id,
+                {
                     "task_id": task_id,
                     "user_id": interaction.user.id,
                     "server_id": interaction.guild.id,
-                    "channel_id": interaction.channel.id
-                })
+                    "channel_id": interaction.channel.id,
+                },
+            )
 
             subscribe["remind_time"] = (remind_time - self.user_time_zone +
                                         24) % 24
@@ -320,15 +353,19 @@ class SubscribeAddModal(ui.Modal):
             if "id" in subscribe:  # update
 
                 if subscribe_adapter.update_subscribe(**subscribe):
-                    embed_name = f"🔄 更新 {self.selected_task_infos[task_id]['name']} 成功"
+                    embed_name = (
+                        f"🔄 更新 {self.selected_task_infos[task_id]['name']} 成功")
                 else:
-                    embed_name = f"🔄 更新 {self.selected_task_infos[task_id]['name']} 失敗"
-                    embed_value = "請連絡管理員",
+                    embed_name = (
+                        f"🔄 更新 {self.selected_task_infos[task_id]['name']} 失敗")
+                    embed_value = ("請連絡管理員", )
             else:
                 if subscribe_adapter.add_subscribe(**subscribe):
-                    embed_name = f"🔔 訂閱 {self.selected_task_infos[task_id]['name']} 成功"
+                    embed_name = (
+                        f"🔔 訂閱 {self.selected_task_infos[task_id]['name']} 成功")
                 else:
-                    embed_name = f"🔔 訂閱 {self.selected_task_infos[task_id]['name']} 失敗"
+                    embed_name = (
+                        f"🔔 訂閱 {self.selected_task_infos[task_id]['name']} 失敗")
                     embed_value = "請連絡管理員"
 
             embed.add_field(name=embed_name, value=embed_value, inline=False)
@@ -405,16 +442,20 @@ class Daily(commands.Cog,
         tasks_in_server = daily_adapter.get_task(
             {"server_id": str(ctx.guild.id)})
 
-        embed = discord.Embed(title="所有每日任務",
-                              description=f"共有 {len(tasks_in_server)} 個任務",
-                              color=discord.Color.green())
+        embed = discord.Embed(
+            title="所有每日任務",
+            description=f"共有 {len(tasks_in_server)} 個任務",
+            color=discord.Color.green(),
+        )
 
         for task in tasks_in_server:
 
             user = await self.bot.fetch_user(int(task["created_by"]))
-            embed.add_field(name=f"{task['name']}: {task['description']}",
-                            value=f"建立者: {user.mention}",
-                            inline=False)
+            embed.add_field(
+                name=f"{task['name']}: {task['description']}",
+                value=f"建立者: {user.mention}",
+                inline=False,
+            )
         await ctx.send(embed=embed)
 
     @daily.command(
@@ -429,9 +470,11 @@ class Daily(commands.Cog,
             "server_id": str(ctx.guild.id)
         })
 
-        embed = discord.Embed(title="以下是您在此伺服器建立的每日任務",
-                              description=f"共有 {len(tasks)} 個任務",
-                              color=discord.Color.green())
+        embed = discord.Embed(
+            title="以下是您在此伺服器建立的每日任務",
+            description=f"共有 {len(tasks)} 個任務",
+            color=discord.Color.green(),
+        )
 
         for task in tasks:
             embed.add_field(name=f"📜 {task['name']}",
@@ -477,13 +520,15 @@ class Daily(commands.Cog,
             return datetime.fromisoformat(s)
 
         done_tasks = sorted(done_tasks,
-                            key=lambda i: str2iso(i['last_check']),
+                            key=lambda i: str2iso(i["last_check"]),
                             reverse=True)
         n = min(top_n, len(done_tasks))
         done_tasks = done_tasks[:n]
-        embed = discord.Embed(title=f"最近簽到的{n}個每日任務",
-                              description="",
-                              color=discord.Color.green())
+        embed = discord.Embed(
+            title=f"最近簽到的{n}個每日任務",
+            description="",
+            color=discord.Color.green(),
+        )
 
         for task in done_tasks:
             try:
@@ -545,8 +590,10 @@ class Daily(commands.Cog,
                 continue
 
             user = await self.bot.fetch_user(int(user_id))
-            embed = discord.Embed(title=f"📢 你今天還有以下任務沒有完成喔，堅持下去!",
-                                  color=discord.Color.blurple())
+            embed = discord.Embed(
+                title=f"📢 你今天還有以下任務沒有完成喔，堅持下去!",
+                color=discord.Color.blurple(),
+            )
 
             embed.set_footer(text=self.remind_words[random.randint(
                 0,
@@ -586,7 +633,7 @@ class Daily(commands.Cog,
                     for hist in daily_adapter.get_history(
                         {
                             "user_id": task["user_id"],
-                            "last_check": now.strftime("%Y-%m-%d")
+                            "last_check": now.strftime("%Y-%m-%d"),
                         })
                 ]
                 # 2023.04.08 bugfix: condemning done tasks bug
@@ -605,7 +652,8 @@ class Daily(commands.Cog,
                 description=self.condemn_words[random.randint(
                     0,
                     len(self.condemn_words) - 1)],
-                color=discord.Color.fuchsia())
+                color=discord.Color.fuchsia(),
+            )
 
             # img = random.sample(os.listdir("imgs/condemn"), 1)
             # file = discord.File(os.path.join("imgs/condemn", img[0]),
@@ -617,14 +665,15 @@ class Daily(commands.Cog,
                     name=f"📝 {task_name}",
                     value=
                     f"{' '.join([f'<@{user_id}>' for user_id in user_ids])}",
-                    inline=False)
+                    inline=False,
+                )
 
             await channel.send(embed=embed)
 
     @daily.command(name="delete", description="刪除每日任務")
     async def daily_delete(self, context: Context):
         user_created_tasks = daily_adapter.get_task(
-            {'created_by': context.author.id})
+            {"created_by": context.author.id})
         subscribed_tasks = subscribe_adapter.get_subscribe(
             {"user_id": context.author.id})
 
@@ -644,10 +693,12 @@ class Daily(commands.Cog,
             for task in diffset
         ])
         view = ui.View()
-        select_ui = ui.Select(placeholder="請選擇要刪除的每日任務",
-                              options=options,
-                              min_values=1,
-                              max_values=max(len(options), 1))
+        select_ui = ui.Select(
+            placeholder="請選擇要刪除的每日任務",
+            options=options,
+            min_values=1,
+            max_values=max(len(options), 1),
+        )
 
         async def callback(interaction: discord.Interaction):
 
@@ -655,7 +706,7 @@ class Daily(commands.Cog,
             if "cancel" in task_ids_to_delete:
                 await interaction.message.edit(content="取消刪除", view=None)
                 return
-            print('Task ids to delete:', task_ids_to_delete)
+            print("Task ids to delete:", task_ids_to_delete)
             double_check_ui = ButtonCheck()
 
             await interaction.response.edit_message(content="確認刪除？",
